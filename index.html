@@ -138,6 +138,46 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font
 .q-pts{font-family:'Press Start 2P';font-size:14px;color:var(--accent3);white-space:nowrap}
 .q-type{font-size:15px;color:var(--accent2);font-family:'Press Start 2P';white-space:nowrap}
 
+/* CHALLENGE CARDS */
+/* CALENDAR */
+.cal-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;border:var(--px) solid var(--border);background:var(--card);cursor:pointer;transition:border-color .15s;height:42px;overflow:hidden}
+.cal-cell:active{opacity:.7}
+.cal-cell.today{border-color:var(--accent2)}
+.cal-cell.empty{background:transparent;border-color:transparent;cursor:default}
+.cal-cell.future{opacity:.3;cursor:default}
+.cal-num{font-family:'Press Start 2P';font-size:8px;color:var(--text);line-height:1}
+.cal-dots{display:flex;gap:2px;margin-top:4px;flex-wrap:wrap;justify-content:center;max-width:100%}
+.cal-dot{width:5px;height:5px;flex-shrink:0}
+/* DAY DETAIL */
+.day-section{margin-bottom:14px}
+.day-section-title{font-family:'Press Start 2P';font-size:8px;color:var(--muted);margin-bottom:8px;padding-bottom:4px;border-bottom:var(--px) solid var(--border)}
+.day-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);font-size:14px}
+.day-row:last-child{border-bottom:none}
+.day-val{color:var(--accent3);font-family:'Press Start 2P';font-size:9px;white-space:nowrap;margin-left:8px}
+.day-empty{font-size:13px;color:var(--muted);padding:6px 0}
+
+.challenge-card{border:var(--px) solid var(--border);background:var(--card);margin-bottom:10px;padding:14px;position:relative;overflow:hidden}
+.challenge-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.challenge-card.diff-1::before{background:var(--accent)}
+.challenge-card.diff-2::before{background:var(--accent3)}
+.challenge-card.diff-3::before{background:var(--accent4)}
+.challenge-card.done-ch{opacity:.55}
+.challenge-card.done-ch::before{background:var(--muted)}
+.ch-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.ch-title{font-size:14px;font-weight:500;flex:1;margin-right:8px}
+.ch-pts{font-family:'Press Start 2P';font-size:9px;white-space:nowrap}
+.ch-pts.diff-1{color:var(--accent)}.ch-pts.diff-2{color:var(--accent3)}.ch-pts.diff-3{color:var(--accent4)}
+.ch-desc{font-size:13px;color:var(--muted);margin-bottom:8px;line-height:1.6}
+.ch-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.ch-meta{font-size:12px;color:var(--muted)}
+.ch-progress{width:100%;height:7px;background:var(--surface);border:var(--px) solid var(--border);margin:6px 0}
+.ch-progress-fill{height:100%;transition:width .4s}
+.ch-badge{font-size:10px;padding:3px 8px;border:var(--px) solid var(--muted);color:var(--muted)}
+.ch-badge.weekly{border-color:var(--accent2);color:var(--accent2)}
+.ch-badge.biweekly{border-color:var(--accent3);color:var(--accent3)}
+.ch-badge.monthly{border-color:var(--accent4);color:var(--accent4)}
+.ch-badge.special{border-color:#bf7fff;color:#bf7fff}
+
 /* STREAK */
 .streak-row{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
 .streak-dot{width:32px;height:32px;border:var(--px) solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:7px;color:var(--muted);flex-shrink:0}
@@ -263,7 +303,9 @@ textarea{resize:vertical;min-height:60px}
     <thead><tr><th></th><th>QUEST</th><th>TYP</th><th>PKT</th></tr></thead>
     <tbody id="quests-body"></tbody>
   </table>
-  <button class="btn sm b2" onclick="openModal('quest-modal')">+ WŁASNY QUEST</button>
+
+  <div class="section-title">⚡ WYZWANIA AKTYWNE</div>
+  <div id="challenges-list"></div>
 
   <div class="section-title">✅ NAWYKI</div>
   <div id="habits-list"></div>
@@ -350,6 +392,31 @@ textarea{resize:vertical;min-height:60px}
     <button class="period-tab" id="pt-year" onclick="setPeriod('year')">ROK</button>
   </div>
 
+  <div class="section-title">📅 HISTORIA DNI</div>
+  <div class="pbox" style="padding:10px;margin-bottom:10px;overflow:hidden">
+    <div id="cal-nav" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <button onclick="calPrev()" style="background:none;border:var(--px) solid var(--border);color:var(--muted);font-size:18px;width:34px;height:34px;cursor:pointer;flex-shrink:0">‹</button>
+      <span id="cal-title" style="font-family:'Press Start 2P';font-size:9px;color:var(--accent2);text-align:center"></span>
+      <button onclick="calNext()" style="background:none;border:var(--px) solid var(--border);color:var(--muted);font-size:18px;width:34px;height:34px;cursor:pointer;flex-shrink:0">›</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px">
+      <div style="text-align:center;font-size:10px;color:var(--muted);padding:2px 0">PN</div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);padding:2px 0">WT</div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);padding:2px 0">ŚR</div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);padding:2px 0">CZ</div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);padding:2px 0">PT</div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);padding:2px 0">SO</div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);padding:2px 0">NI</div>
+    </div>
+    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;width:100%"></div>
+    <div id="cal-legend" style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><div style="width:10px;height:10px;background:var(--accent)"></div>trening</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><div style="width:10px;height:10px;background:var(--accent2)"></div>focus</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><div style="width:10px;height:10px;background:var(--accent3)"></div>cel białka</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><div style="width:10px;height:10px;background:var(--accent4)"></div>nawyki</div>
+    </div>
+  </div>
+
   <div class="section-title">⚡ OGÓLNE</div>
   <div class="tile-grid-3" id="stats-general"></div>
 
@@ -383,6 +450,14 @@ textarea{resize:vertical;min-height:60px}
 
 <!-- ============ MODALS ============ -->
 
+<!-- DAY DETAIL MODAL -->
+<div class="overlay" id="day-modal">
+<div class="modal">
+  <button class="modal-close" onclick="closeModal('day-modal')">✕</button>
+  <div class="modal-title" id="day-modal-title">DZIEŃ</div>
+  <div id="day-modal-content"></div>
+</div></div>
+
 <!-- HABIT -->
 <div class="overlay" id="habit-modal">
 <div class="modal">
@@ -397,30 +472,6 @@ textarea{resize:vertical;min-height:60px}
   <label>Opis</label><input id="habit-desc-inp" placeholder="np. 10 minut rano">
   <label>Punkty za wykonanie</label><input type="number" id="habit-pts-inp" value="10" min="1" max="200">
   <button class="btn" onclick="saveHabit()" style="margin-top:14px">ZAPISZ</button>
-</div></div>
-
-<!-- QUEST -->
-<div class="overlay" id="quest-modal">
-<div class="modal">
-  <button class="modal-close" onclick="closeModal('quest-modal')">✕</button>
-  <div class="modal-title" id="quest-modal-title">NOWY QUEST</div>
-  <input type="hidden" id="quest-edit-id">
-  <label>Opis questa</label><input id="quest-desc-inp" placeholder="np. Zalicz 3 treningi w tygodniu">
-  <label>Typ</label>
-  <select id="quest-type-inp">
-    <option value="daily">Dzienny</option>
-    <option value="weekly">Tygodniowy</option>
-  </select>
-  <label>Kategoria</label>
-  <select id="quest-cat-inp">
-    <option value="workout">⚔️ Trening</option>
-    <option value="nutrition">🧪 Żywienie</option>
-    <option value="focus">🔮 Focus</option>
-    <option value="habit">✅ Nawyk</option>
-    <option value="other">⭐ Inne</option>
-  </select>
-  <label>Punkty</label><input type="number" id="quest-pts-inp" value="20" min="1">
-  <button class="btn" onclick="saveQuest()" style="margin-top:14px">ZAPISZ</button>
 </div></div>
 
 <!-- FOOD -->
@@ -546,6 +597,40 @@ textarea{resize:vertical;min-height:60px}
   <button class="btn b2" onclick="saveFocusCat()" style="margin-top:14px">ZAPISZ</button>
 </div></div>
 
+<!-- RECORD STRENGTH MODAL -->
+<div class="overlay" id="record-strength-modal">
+<div class="modal">
+  <button class="modal-close" onclick="closeModal('record-strength-modal')">✕</button>
+  <div class="modal-title" id="rec-str-title">REKORD SIŁOWY</div>
+  <input type="hidden" id="rec-str-edit-key">
+  <label>Nazwa ćwiczenia</label>
+  <input id="rec-str-name" placeholder="np. Wyciskanie na ławce">
+  <div class="inp-row">
+    <div><label>Ciężar (kg)</label><input type="number" id="rec-str-weight" value="0" min="0" step="2.5"></div>
+    <div><label>Powtórzenia</label><input type="number" id="rec-str-reps" value="1" min="1"></div>
+  </div>
+  <label>Data</label>
+  <input type="date" id="rec-str-date">
+  <button class="btn b2" onclick="saveStrengthRecord()" style="margin-top:14px">ZAPISZ REKORD</button>
+</div></div>
+
+<!-- RECORD CARDIO MODAL -->
+<div class="overlay" id="record-cardio-modal">
+<div class="modal">
+  <button class="modal-close" onclick="closeModal('record-cardio-modal')">✕</button>
+  <div class="modal-title" id="rec-cardio-title">REKORD CARDIO</div>
+  <input type="hidden" id="rec-cardio-edit-key">
+  <label>Aktywność</label>
+  <input id="rec-cardio-name" placeholder="np. Bieganie 5km">
+  <div class="inp-row">
+    <div><label>Czas (min)</label><input type="number" id="rec-cardio-time" value="30" min="1"></div>
+    <div><label>Dystans (km)</label><input type="number" id="rec-cardio-dist" value="0" step="0.1" min="0"></div>
+  </div>
+  <label>Data</label>
+  <input type="date" id="rec-cardio-date">
+  <button class="btn b3" onclick="saveCardioRecord()" style="margin-top:14px">ZAPISZ REKORD</button>
+</div></div>
+
 <!-- CONFIRM DIALOG -->
 <div class="overlay" id="confirm-modal">
 <div class="modal" style="padding-bottom:20px">
@@ -570,10 +655,6 @@ textarea{resize:vertical;min-height:60px}
 </div></div>
 
 <div id="toast"></div>
-</body></html>
-'use strict';
-<div id="toast"></div>
-
 <script>
 'use strict';
 // =====================================================================
@@ -582,6 +663,287 @@ textarea{resize:vertical;min-height:60px}
 const STORAGE_KEY = 'liferpg_v3';
 
 // System quests — permanent, auto-checked, not deletable
+// =====================================================================
+//  CHALLENGE SYSTEM — losowe wyzwania przez rok
+// =====================================================================
+
+// Pełna baza wyzwań — 60+ różnych
+const CHALLENGE_POOL = [
+  // ── SIŁOWNIA — trudność 1 (łatwe, 50-80 pkt) ──
+  { id:'ch_str1',  cat:'workout', diff:1, type:'weekly',   title:'Seria pompek', desc:'Wykonaj 100 pompek w ciągu tygodnia (możesz podzielić na dni).', pts:50, icon:'💪' },
+  { id:'ch_str2',  cat:'workout', diff:1, type:'weekly',   title:'Trzy razy na siłownię', desc:'Zakończ 3 różne treningi siłowe w tym tygodniu.', pts:60, icon:'⚔️',
+    progress: ()=>{ const d=getThisWeekDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)&&w.type!=='cardio').length, max:3}; } },
+  { id:'ch_str3',  cat:'workout', diff:1, type:'weekly',   title:'Nie opuszczaj mobilizacji', desc:'Zrób trening MOB w tym tygodniu.', pts:40, icon:'🧘',
+    progress: ()=>{ const d=getThisWeekDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)&&w.type==='mob').length, max:1}; } },
+  { id:'ch_str4',  cat:'workout', diff:1, type:'biweekly', title:'Konsekwencja', desc:'Zalicz 5 treningów w ciągu 2 tygodni.', pts:70, icon:'📅',
+    progress: ()=>{ const d=getLastNDays(14); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)).length, max:5}; } },
+
+  // ── SIŁOWNIA — trudność 2 (średnie, 100-150 pkt) ──
+  { id:'ch_str5',  cat:'workout', diff:2, type:'weekly',   title:'Full split tygodnia', desc:'Zrób PUSH, PULL i MOB w tym samym tygodniu.', pts:100, icon:'🏆',
+    progress: ()=>{ const d=getThisWeekDays(),ws=S.workouts||[]; const types=new Set(ws.filter(w=>d.includes(w.day)).map(w=>w.type)); return {cur:['push','pull','mob'].filter(t=>types.has(t)).length, max:3}; } },
+  { id:'ch_str6',  cat:'workout', diff:2, type:'biweekly', title:'Progresja ciężaru', desc:'Pobij swój rekord w jakimkolwiek ćwiczeniu w ciągu 2 tygodni.', pts:120, icon:'📈' },
+  { id:'ch_str7',  cat:'workout', diff:2, type:'monthly',  title:'Miesiąc bez dnia bez treningu', desc:'Zalicz minimum 12 treningów w tym miesiącu.', pts:150, icon:'🔥',
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)).length, max:12}; } },
+  { id:'ch_str8',  cat:'workout', diff:2, type:'weekly',   title:'Superset tydzień', desc:'Wykonaj 4 treningi siłowe w jednym tygodniu.', pts:110, icon:'⚡',
+    progress: ()=>{ const d=getThisWeekDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)&&w.type!=='cardio').length, max:4}; } },
+
+  // ── SIŁOWNIA — trudność 3 (twarde, 200+ pkt) ──
+  { id:'ch_str9',  cat:'workout', diff:3, type:'monthly',  title:'Iron Month', desc:'20 treningów w jednym miesiącu. Bez wymówek.', pts:300, icon:'🦾',
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)).length, max:20}; } },
+  { id:'ch_str10', cat:'workout', diff:3, type:'biweekly', title:'Pełny split ×2', desc:'Zrób kompletny tydzień siłowy (PUSH+PULL+MOB) dwa razy z rzędu.', pts:200, icon:'⚔️' },
+
+  // ── CARDIO — trudność 1 ──
+  { id:'ch_car1',  cat:'cardio', diff:1, type:'weekly',   title:'Rusz się!', desc:'Wykonaj 2 sesje cardio w tym tygodniu.', pts:45, icon:'🏃',
+    progress: ()=>{ const d=getThisWeekDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)&&w.type==='cardio').length, max:2}; } },
+  { id:'ch_car2',  cat:'cardio', diff:1, type:'weekly',   title:'30 minut w ruchu', desc:'Zrób jedną sesję cardio trwającą minimum 30 minut.', pts:40, icon:'⏱️',
+    progress: ()=>{ const d=getThisWeekDays(); const s=(S.workouts||[]).find(w=>d.includes(w.day)&&w.type==='cardio'&&(w.time||0)>=30); return {cur:s?1:0, max:1}; } },
+  { id:'ch_car3',  cat:'cardio', diff:1, type:'biweekly', title:'Aktywny pracownik', desc:'4 sesje cardio w 2 tygodnie.', pts:65, icon:'🚴',
+    progress: ()=>{ const d=getLastNDays(14); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)&&w.type==='cardio').length, max:4}; } },
+
+  // ── CARDIO — trudność 2 ──
+  { id:'ch_car4',  cat:'cardio', diff:2, type:'weekly',   title:'Cardio kociak', desc:'3 sesje cardio w tygodniu, każda min. 20 min.', pts:90, icon:'🏊',
+    progress: ()=>{ const d=getThisWeekDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)&&w.type==='cardio'&&(w.time||0)>=20).length, max:3}; } },
+  { id:'ch_car5',  cat:'cardio', diff:2, type:'monthly',  title:'Cardio miesiąc', desc:'8 sesji cardio w miesiącu.', pts:130, icon:'🏅',
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)&&w.type==='cardio').length, max:8}; } },
+  { id:'ch_car6',  cat:'cardio', diff:2, type:'biweekly', title:'Pobij rekord czasu', desc:'Zrób sesję cardio dłuższą niż Twój aktualny rekord.', pts:100, icon:'⏰' },
+
+  // ── CARDIO — trudność 3 ──
+  { id:'ch_car7',  cat:'cardio', diff:3, type:'monthly',  title:'Maraton aktywności', desc:'15 sesji cardio w jednym miesiącu.', pts:250, icon:'🏆',
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)&&w.type==='cardio').length, max:15}; } },
+
+  // ── ŻYWIENIE — trudność 1 ──
+  { id:'ch_nut1',  cat:'nutrition', diff:1, type:'weekly',   title:'Białkowy tydzień', desc:'Osiągnij dzienny cel białka przez 3 dni w tygodniu.', pts:50, icon:'🥩',
+    progress: ()=>{ const d=getThisWeekDays(),m=(S.macros||[])[0]; if(!m) return {cur:0,max:3}; return {cur:d.filter(dy=>(S.dailyMacros[dy]||{})[m.id]>=(m.goal||999)).length, max:3}; } },
+  { id:'ch_nut2',  cat:'nutrition', diff:1, type:'weekly',   title:'Suplement bohater', desc:'Weź wszystkie suplementy przez 5 dni z rzędu.', pts:45, icon:'💊',
+    progress: ()=>{ const d=getThisWeekDays().slice(0,getTodayDowIndex()+1); return {cur:d.filter(dy=>suppAllTakenOnDay(dy)).length, max:5}; } },
+  { id:'ch_nut3',  cat:'nutrition', diff:1, type:'biweekly', title:'Loguj posiłki', desc:'Dodaj posiłki do dziennika przez 7 dni z 14.', pts:55, icon:'📝',
+    progress: ()=>{ const d=getLastNDays(14); return {cur:d.filter(dy=>(S.foodLog[dy]||[]).length>0).length, max:7}; } },
+
+  // ── ŻYWIENIE — trudność 2 ──
+  { id:'ch_nut4',  cat:'nutrition', diff:2, type:'weekly',   title:'Białkowy perfekcjonista', desc:'Cel białka każdego dnia przez cały tydzień.', pts:100, icon:'💪',
+    progress: ()=>{ const d=getThisWeekDays(),m=(S.macros||[])[0]; if(!m) return {cur:0,max:7}; return {cur:d.filter(dy=>(S.dailyMacros[dy]||{})[m.id]>=(m.goal||999)).length, max:7}; } },
+  { id:'ch_nut5',  cat:'nutrition', diff:2, type:'monthly',  title:'Miesiąc suplementacji', desc:'Weź wszystkie suplementy przez 20 dni w miesiącu.', pts:140, icon:'☀️',
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:d.filter(dy=>suppAllTakenOnDay(dy)).length, max:20}; } },
+  { id:'ch_nut6',  cat:'nutrition', diff:2, type:'biweekly', title:'Dziennik żywności', desc:'Loguj wszystkie posiłki przez 10 dni z rzędu.', pts:110, icon:'🍽️',
+    progress: ()=>{ const d=getLastNDays(14); return {cur:d.filter(dy=>(S.foodLog[dy]||[]).length>0).length, max:10}; } },
+
+  // ── ŻYWIENIE — trudność 3 ──
+  { id:'ch_nut7',  cat:'nutrition', diff:3, type:'monthly',  title:'Żywieniowy mnich', desc:'Cel białka i suplementy każdego dnia przez cały miesiąc.', pts:280, icon:'🧘',
+    progress: ()=>{ const d=getThisMonthDays(),m=(S.macros||[])[0]; if(!m) return {cur:0,max:d.length}; return {cur:d.filter(dy=>(S.dailyMacros[dy]||{})[m.id]>=(m.goal||999)&&suppAllTakenOnDay(dy)).length, max:d.length}; } },
+
+  // ── FOCUS — trudność 1 ──
+  { id:'ch_foc1',  cat:'focus', diff:1, type:'weekly',   title:'Tryb skupienia', desc:'Ukończ 3 sesje Pomodoro w tym tygodniu.', pts:45, icon:'🔮',
+    progress: ()=>{ const d=getThisWeekDays(); return {cur:(S.focusSessions||[]).filter(s=>d.includes(s.day)).length, max:3}; } },
+  { id:'ch_foc2',  cat:'focus', diff:1, type:'weekly',   title:'Godzina nauki', desc:'Spędź łącznie 3h na nauce w tym tygodniu.', pts:55, icon:'📚',
+    progress: ()=>{ return {cur:Math.round(getFocusMinCat('Nauka',getThisWeekDays())/60*10)/10, max:3}; } },
+  { id:'ch_foc3',  cat:'focus', diff:1, type:'weekly',   title:'Praca systematyczna', desc:'Miej sesję skupienia każdego dnia roboczego (pon-pt).', pts:60, icon:'💻',
+    progress: ()=>{ const wd=getThisWeekDays().slice(0,5),fs=S.focusSessions||[]; return {cur:wd.filter(d=>fs.some(s=>s.day===d)).length, max:5}; } },
+  { id:'ch_foc4',  cat:'focus', diff:1, type:'biweekly', title:'Dwie kategorie', desc:'Użyj co najmniej 2 różnych kategorii skupienia w ciągu 2 tygodni.', pts:50, icon:'🎯',
+    progress: ()=>{ const d=getLastNDays(14),cats=new Set((S.focusSessions||[]).filter(s=>d.includes(s.day)).map(s=>s.cat)); return {cur:cats.size, max:2}; } },
+
+  // ── FOCUS — trudność 2 ──
+  { id:'ch_foc5',  cat:'focus', diff:2, type:'weekly',   title:'Focus master', desc:'Łącznie 10h skupienia w jednym tygodniu.', pts:120, icon:'⚡',
+    progress: ()=>{ const d=getThisWeekDays(),min=(S.focusSessions||[]).filter(s=>d.includes(s.day)).reduce((a,s)=>a+s.minutes,0); return {cur:Math.round(min/60*10)/10, max:10}; } },
+  { id:'ch_foc6',  cat:'focus', diff:2, type:'monthly',  title:'Miesiąc produktywności', desc:'Minimum 30h skupienia w miesiącu.', pts:160, icon:'🏆',
+    progress: ()=>{ const d=getThisMonthDays(),min=(S.focusSessions||[]).filter(s=>d.includes(s.day)).reduce((a,s)=>a+s.minutes,0); return {cur:Math.round(min/60*10)/10, max:30}; } },
+  { id:'ch_foc7',  cat:'focus', diff:2, type:'biweekly', title:'Nauka na poważnie', desc:'8h nauki w ciągu 2 tygodni.', pts:110, icon:'📖',
+    progress: ()=>{ return {cur:Math.round(getFocusMinCat('Nauka',getLastNDays(14))/60*10)/10, max:8}; } },
+
+  // ── FOCUS — trudność 3 ──
+  { id:'ch_foc8',  cat:'focus', diff:3, type:'monthly',  title:'Geniusz miesiąca', desc:'50h skupienia w jednym miesiącu. Legendarny wyczyn.', pts:350, icon:'🧠',
+    progress: ()=>{ const d=getThisMonthDays(),min=(S.focusSessions||[]).filter(s=>d.includes(s.day)).reduce((a,s)=>a+s.minutes,0); return {cur:Math.round(min/60*10)/10, max:50}; } },
+  { id:'ch_foc9',  cat:'focus', diff:3, type:'weekly',   title:'Deep work tydzień', desc:'Codziennie minimum 2h skupienia przez 7 dni.', pts:200, icon:'🔬',
+    progress: ()=>{ const d=getThisWeekDays(),fs=S.focusSessions||[]; return {cur:d.filter(dy=>fs.filter(s=>s.day===dy).reduce((a,s)=>a+s.minutes,0)>=120).length, max:7}; } },
+
+  // ── NAWYKI — trudność 1 ──
+  { id:'ch_hab1',  cat:'habit', diff:1, type:'weekly',   title:'Nawyki w ruch', desc:'Odhacz wszystkie nawyki przez 3 dni w tygodniu.', pts:45, icon:'✅',
+    progress: ()=>{ const d=getThisWeekDays().slice(0,getTodayDowIndex()+1); return {cur:d.filter(dy=>(S.habitDayLog||{})[dy]).length, max:3}; } },
+  { id:'ch_hab2',  cat:'habit', diff:1, type:'biweekly', title:'Budowanie rutyny', desc:'Odhacz nawyki przez 8 z 14 dni.', pts:65, icon:'🌱',
+    progress: ()=>{ const d=getLastNDays(14); return {cur:d.filter(dy=>(S.habitDayLog||{})[dy]).length, max:8}; } },
+
+  // ── NAWYKI — trudność 2 ──
+  { id:'ch_hab3',  cat:'habit', diff:2, type:'weekly',   title:'Żelazna dyscyplina', desc:'Odhacz wszystkie nawyki każdego dnia przez cały tydzień.', pts:100, icon:'🔥',
+    progress: ()=>{ const d=getThisWeekDays().slice(0,getTodayDowIndex()+1); return {cur:d.filter(dy=>(S.habitDayLog||{})[dy]).length, max:7}; } },
+  { id:'ch_hab4',  cat:'habit', diff:2, type:'monthly',  title:'Miesiąc nawyków', desc:'Kompletne nawyki przez 20 dni w miesiącu.', pts:150, icon:'⭐',
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:d.filter(dy=>(S.habitDayLog||{})[dy]).length, max:20}; } },
+
+  // ── NAWYKI — trudność 3 ──
+  { id:'ch_hab5',  cat:'habit', diff:3, type:'monthly',  title:'Mistrz nawyków', desc:'Odhacz wszystkie nawyki każdego dnia przez cały miesiąc.', pts:300, icon:'👑',
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:d.filter(dy=>(S.habitDayLog||{})[dy]).length, max:d.length}; } },
+
+  // ── KOMPLEKSOWE (mix kategorii) — trudność 2-3 ──
+  { id:'ch_mix1',  cat:'mix', diff:2, type:'weekly',   title:'Zdrowy tydzień', desc:'Trening + cel białka + sesja focus — wszystko w jednym dniu.', pts:120, icon:'🌟',
+    progress: ()=>{ const d=getThisWeekDays(),m=(S.macros||[])[0],fs=S.focusSessions||[],ws=S.workouts||[]; const hits=d.filter(dy=>ws.some(w=>w.day===dy)&&(m?(S.dailyMacros[dy]||{})[m.id]>=(m.goal||999):true)&&fs.some(s=>s.day===dy)); return {cur:hits.length, max:3}; } },
+  { id:'ch_mix2',  cat:'mix', diff:2, type:'biweekly', title:'All-in fortnight', desc:'Zrób trening siłowy, cardio i sesję focus w tym samym tygodniu.', pts:130, icon:'⚡',
+    progress: ()=>{ const d=getThisWeekDays(),ws=S.workouts||[],fs=S.focusSessions||[]; const str=ws.some(w=>d.includes(w.day)&&w.type!=='cardio')?1:0; const car=ws.some(w=>d.includes(w.day)&&w.type==='cardio')?1:0; const foc=fs.some(s=>d.includes(s.day))?1:0; return {cur:str+car+foc, max:3}; } },
+  { id:'ch_mix3',  cat:'mix', diff:3, type:'monthly',  title:'Wojownik miesiąca', desc:'Treningi, cel białka i 20h focus — wszystko w jednym miesiącu.', pts:400, icon:'🦸',
+    progress: ()=>{ const d=getThisMonthDays(),m=(S.macros||[])[0]; const wk=(S.workouts||[]).filter(w=>d.includes(w.day)).length>=10?1:0; const prot=m?d.filter(dy=>(S.dailyMacros[dy]||{})[m.id]>=(m.goal||999)).length>=15?1:0:1; const min=(S.focusSessions||[]).filter(s=>d.includes(s.day)).reduce((a,s)=>a+s.minutes,0)>=1200?1:0; return {cur:wk+prot+min, max:3}; } },
+  { id:'ch_mix4',  cat:'mix', diff:1, type:'weekly',   title:'Aktywny dzień', desc:'Zrób trening i sesję focus tego samego dnia.', pts:70, icon:'💥',
+    progress: ()=>{ const d=getThisWeekDays(),ws=S.workouts||[],fs=S.focusSessions||[]; return {cur:d.filter(dy=>ws.some(w=>w.day===dy)&&fs.some(s=>s.day===dy)).length, max:1}; } },
+  { id:'ch_mix5',  cat:'mix', diff:2, type:'weekly',   title:'Trifecta', desc:'Siłownia + Cardio + Mobilizacja — jeden pełny tydzień treningowy.', pts:140, icon:'🎯',
+    progress: ()=>{ const d=getThisWeekDays(),ws=S.workouts||[],types=new Set(ws.filter(w=>d.includes(w.day)).map(w=>w.type)); return {cur:['push','pull','mob','cardio'].filter(t=>types.has(t)).length, max:4}; } },
+
+  // ── SEZONOWE / SPECJALNE ──
+  { id:'ch_sea1',  cat:'special', diff:2, type:'monthly',  title:'Nowy Rok nowy ja', desc:'Styczeń: Zrób plan na cały rok i zalicz 8 treningów.', pts:180, icon:'🎊', months:[1],
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)).length, max:8}; } },
+  { id:'ch_sea2',  cat:'special', diff:3, type:'monthly',  title:'Wiosenna forma', desc:'Marzec/Kwiecień: 15 treningów i 10h focus — czas na formę.', pts:250, icon:'🌸', months:[3,4],
+    progress: ()=>{ const d=getThisMonthDays(),wk=(S.workouts||[]).filter(w=>d.includes(w.day)).length,foc=Math.round((S.focusSessions||[]).filter(s=>d.includes(s.day)).reduce((a,s)=>a+s.minutes,0)/60); return {cur:Math.min(wk,15)+Math.min(foc,10), max:25}; } },
+  { id:'ch_sea3',  cat:'special', diff:2, type:'monthly',  title:'Letnia seria cardio', desc:'Czerwiec/Lipiec/Sierpień: 10 sesji cardio.', pts:200, icon:'☀️', months:[6,7,8],
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)&&w.type==='cardio').length, max:10}; } },
+  { id:'ch_sea4',  cat:'special', diff:2, type:'monthly',  title:'Jesienna produktywność', desc:'Wrzesień/Październik: 30h focus — sezon skupienia.', pts:220, icon:'🍂', months:[9,10],
+    progress: ()=>{ const d=getThisMonthDays(),min=(S.focusSessions||[]).filter(s=>d.includes(s.day)).reduce((a,s)=>a+s.minutes,0); return {cur:Math.round(min/60*10)/10, max:30}; } },
+  { id:'ch_sea5',  cat:'special', diff:1, type:'monthly',  title:'Grudzień — nie odpuszczaj', desc:'Grudzień: 6 treningów mimo świąt.', pts:120, icon:'❄️', months:[12],
+    progress: ()=>{ const d=getThisMonthDays(); return {cur:(S.workouts||[]).filter(w=>d.includes(w.day)).length, max:6}; } },
+
+  // ── STREAK WYZWANIA ──
+  { id:'ch_str11', cat:'habit', diff:2, type:'biweekly', title:'10-dniowy streak', desc:'Odhaczaj nawyki przez 10 dni z rzędu.', pts:130, icon:'🔥' },
+  { id:'ch_str12', cat:'habit', diff:3, type:'monthly',  title:'30-dniowy streak', desc:'Nie opuść ani jednego dnia nawyków przez miesiąc.', pts:350, icon:'💎' },
+];
+
+// ── Challenge helpers ──
+function getLastNDays(n) {
+  const days=[], today=new Date();
+  for(let i=n-1;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);days.push(d.toDateString());}
+  return days;
+}
+
+function getThisMonthDays() {
+  const now=new Date(), year=now.getFullYear(), month=now.getMonth();
+  const days=[];
+  for(let d=1;d<=now.getDate();d++){days.push(new Date(year,month,d).toDateString());}
+  return days;
+}
+
+// Select 3-4 active challenges per period — deterministic based on week/month number
+function getActiveChallenges() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const weekNum = getWeekNumber(now);
+  const month = now.getMonth() + 1; // 1-12
+
+  // Filter seasonal
+  const eligible = CHALLENGE_POOL.filter(c => {
+    if (c.months && !c.months.includes(month)) return false;
+    return true;
+  });
+
+  // Deterministic shuffle based on week+year seed
+  const seed = year * 100 + weekNum;
+  const shuffled = seededShuffle(eligible, seed);
+
+  // Pick: 1 weekly easy, 1 weekly medium, 1 biweekly, 1 monthly
+  const result = [];
+  const types = ['weekly','weekly','biweekly','monthly'];
+  const diffs = [1,2,1,2];
+  const used = new Set();
+
+  types.forEach((type, i) => {
+    const diff = diffs[i];
+    const pick = shuffled.find(c => c.type===type && c.diff===diff && !used.has(c.id));
+    if (pick) { result.push(pick); used.add(pick.id); }
+  });
+
+  // Add a special/seasonal if available this month
+  const seasonal = shuffled.find(c => c.cat==='special' && !used.has(c.id));
+  if (seasonal) { result.push(seasonal); used.add(seasonal.id); }
+
+  // Add one hard challenge per month (changes monthly)
+  const hardSeed = year * 1000 + month;
+  const hardShuffled = seededShuffle(eligible.filter(c=>c.diff===3), hardSeed);
+  const hard = hardShuffled.find(c=>!used.has(c.id));
+  if (hard) result.push(hard);
+
+  return result;
+}
+
+function getWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
+
+function seededShuffle(arr, seed) {
+  const a = [...arr];
+  let s = seed;
+  const rng = () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(rng() * (i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function getChallengeProgress(ch) {
+  if (!ch.progress) return null;
+  try { return ch.progress(); } catch(e) { return null; }
+}
+
+function isChallengeCompleted(ch) {
+  // Check if manually marked done this period
+  const key = getChallengeKey(ch);
+  return (S.completedChallenges||{})[key] === true;
+}
+
+function getChallengeKey(ch) {
+  const now = new Date();
+  if (ch.type==='weekly') return ch.id+'_w'+getWeekNumber(now)+'_'+now.getFullYear();
+  if (ch.type==='biweekly') return ch.id+'_bw'+Math.floor(getWeekNumber(now)/2)+'_'+now.getFullYear();
+  return ch.id+'_m'+(now.getMonth()+1)+'_'+now.getFullYear();
+}
+
+function completeChallenge(chId) {
+  const ch = CHALLENGE_POOL.find(c=>c.id===chId); if(!ch) return;
+  const key = getChallengeKey(ch);
+  if (!S.completedChallenges) S.completedChallenges={};
+  if (S.completedChallenges[key]) return;
+  S.completedChallenges[key] = true;
+  queuePts(ch.pts, 'Wyzwanie: '+ch.title);
+  save(); renderChallenges(); renderPendingActions();
+  showToast('🏆 Wyzwanie ukończone! +'+ch.pts+' PKT');
+}
+
+function renderChallenges() {
+  const el = document.getElementById('challenges-list'); if(!el) return;
+  const challenges = getActiveChallenges();
+  if (!challenges.length) { el.innerHTML='<div class="empty"><span class="e">⚡</span>Brak wyzwań na ten okres</div>'; return; }
+
+  const typeLabels = { weekly:'TYDZIEŃ', biweekly:'2 TYGODNIE', monthly:'MIESIĄC', special:'SPECJALNE' };
+  const diffLabels = ['','ŁATWE','ŚREDNIE','TRUDNE'];
+
+  el.innerHTML = challenges.map(ch => {
+    const done = isChallengeCompleted(ch);
+    const prog = getChallengeProgress(ch);
+    const pct = prog ? Math.min(100, Math.round((prog.cur/prog.max)*100)) : null;
+    const autoComplete = prog && prog.cur >= prog.max && !done;
+
+    return `<div class="challenge-card diff-${ch.diff} ${done?'done-ch':''}">
+      <div class="ch-header">
+        <div class="ch-title">${ch.icon||'⚡'} ${ch.title}</div>
+        <div class="ch-pts diff-${ch.diff}">+${ch.pts} PKT</div>
+      </div>
+      <div class="ch-desc">${ch.desc}</div>
+      ${prog ? `
+        <div class="ch-progress"><div class="ch-progress-fill" style="width:${pct}%;background:${ch.diff===1?'var(--accent)':ch.diff===2?'var(--accent3)':'var(--accent4)'}"></div></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${prog.cur} / ${prog.max} (${pct}%)</div>
+      ` : ''}
+      <div class="ch-footer">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="ch-badge ${ch.type}">${typeLabels[ch.type]||ch.type}</span>
+          <span class="ch-badge">${diffLabels[ch.diff]}</span>
+          ${ch.cat==='special'?'<span class="ch-badge special">SEZONOWE</span>':''}
+        </div>
+        ${done
+          ? `<div style="font-family:'Press Start 2P';font-size:9px;color:var(--accent)">✓ UKOŃCZONE</div>`
+          : autoComplete
+            ? `<button class="btn sm" style="margin-top:0;font-size:9px" onclick="completeChallenge('${ch.id}')">✓ ODBIERZ</button>`
+            : `<button class="btn sm b2" style="margin-top:0;font-size:9px" onclick="completeChallenge('${ch.id}')">UKOŃCZ</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
 const SYSTEM_QUESTS = [
   { id:'sq1', desc:'3 treningi siłowe w tygodniu',  type:'weekly', cat:'workout',   pts:60,  system:true, check: ()=> (S.workouts||[]).filter(w=>getThisWeekDays().includes(w.day)&&w.type!=='cardio').length >= 3 },
   { id:'sq2', desc:'2 treningi cardio w tygodniu',   type:'weekly', cat:'workout',   pts:30,  system:true, check: ()=> (S.workouts||[]).filter(w=>getThisWeekDays().includes(w.day)&&w.type==='cardio').length >= 2 },
@@ -670,7 +1032,8 @@ function defaultState() {
     // LOGS
     dailyPts: {},
     workouts: [],
-    records: {},
+    records: {},      // { exName: { weight, reps, date } } — strength
+    cardioRecords: {}, // { activityName: { time, dist, date } } — cardio
 
     todayFocusMin: 0,
   };
@@ -678,58 +1041,117 @@ function defaultState() {
 
 let S = loadState();
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState();
-    const parsed = JSON.parse(raw);
-    const today = new Date().toDateString();
-    if (parsed.lastActiveDay !== today) {
-      parsed.habits.forEach(h => h.doneToday = false);
-      if (parsed.supplements) parsed.supplements.forEach(s => s.taken = false);
-      parsed.pendingActions = [];
-      parsed.todayPts = 0;
-      parsed.dayFinished = false;
-      parsed.todayFocusMin = 0;
-      // weekly reset on Monday
-      const dow = (new Date().getDay() + 6) % 7;
-      if (dow === 0) parsed.systemQuestDone = {};
-      // rotate weekly activity
-      if (!parsed.weekActivity) parsed.weekActivity = [false,false,false,false,false,false,false];
-      if (parsed.lastActiveDay) {
-        const diffDays = Math.floor((new Date() - new Date(parsed.lastActiveDay)) / 86400000);
-        if (diffDays >= 7) parsed.weekActivity = [false,false,false,false,false,false,false];
-        else for (let i=0;i<Math.min(diffDays,7);i++) { parsed.weekActivity.shift(); parsed.weekActivity.push(false); }
-      }
-    }
-    // ensure new fields
-    if (!parsed.macros) parsed.macros = defaultState().macros;
-    if (!parsed.dailyMacros) parsed.dailyMacros = {};
-    if (!parsed.foodLog) parsed.foodLog = {};
-    if (!parsed.suppHistory) parsed.suppHistory = {};
-    if (!parsed.customExercises) parsed.customExercises = [];
-    if (!parsed.builtinExercises) parsed.builtinExercises = defaultState().builtinExercises;
-    // migrate: remove 'rest' from builtin exercises (now per-plan)
-    if (parsed.builtinExercises) {
-      Object.values(parsed.builtinExercises).forEach(arr => arr.forEach(ex => delete ex.rest));
-    }
-    if (!parsed.workoutPlans) parsed.workoutPlans = defaultState().workoutPlans;
-    if (!parsed.planRestMin) parsed.planRestMin = defaultState().planRestMin;
-    if (!parsed.customQuests) parsed.customQuests = [];
-    if (!parsed.systemQuestDone) parsed.systemQuestDone = {};
-    if (!parsed.yearPts) parsed.yearPts = 0;
-    if (!parsed.dailyPts) parsed.dailyPts = {};
-    if (!parsed.pendingActions) parsed.pendingActions = [];
-    if (!parsed.habitDayLog) parsed.habitDayLog = {};
-    if (!parsed.records) parsed.records = {};
-    if (!parsed.deletedBuiltins) parsed.deletedBuiltins = [];
-    return parsed;
-  } catch(e) { return defaultState(); }
-}
-
 function save() {
   S.lastActiveDay = new Date().toDateString();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
+  const data = JSON.stringify(S);
+  // Always write to localStorage as fast fallback
+  try { localStorage.setItem(STORAGE_KEY, data); } catch(e) {}
+  // Also write to IndexedDB — survives browser history clearing on iOS
+  saveToIDB(data);
+}
+
+// ── IndexedDB layer ──────────────────────────────────────────────────
+const IDB_NAME = 'liferpg_db', IDB_STORE = 'state', IDB_KEY = 'main';
+let _idb = null;
+
+function openIDB() {
+  return new Promise((res, rej) => {
+    if (_idb) { res(_idb); return; }
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    req.onsuccess = e => { _idb = e.target.result; res(_idb); };
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function saveToIDB(data) {
+  openIDB().then(db => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(data, IDB_KEY);
+  }).catch(() => {});
+}
+
+function loadFromIDB() {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+    req.onsuccess = () => res(req.result || null);
+    req.onerror = () => rej(req.error);
+  }));
+}
+
+function applyMigrations(parsed) {
+  const today = new Date().toDateString();
+  if (parsed.lastActiveDay !== today) {
+    if (parsed.habits) parsed.habits.forEach(h => h.doneToday = false);
+    if (parsed.supplements) parsed.supplements.forEach(s => s.taken = false);
+    parsed.pendingActions = [];
+    parsed.todayPts = 0;
+    parsed.dayFinished = false;
+    parsed.todayFocusMin = 0;
+    const dow = (new Date().getDay() + 6) % 7;
+    if (dow === 0) parsed.systemQuestDone = {};
+    if (!parsed.weekActivity) parsed.weekActivity = [false,false,false,false,false,false,false];
+    if (parsed.lastActiveDay) {
+      const diffDays = Math.floor((new Date() - new Date(parsed.lastActiveDay)) / 86400000);
+      if (diffDays >= 7) parsed.weekActivity = [false,false,false,false,false,false,false];
+      else for (let i=0;i<Math.min(diffDays,7);i++) { parsed.weekActivity.shift(); parsed.weekActivity.push(false); }
+    }
+  }
+  if (!parsed.macros) parsed.macros = defaultState().macros;
+  if (!parsed.dailyMacros) parsed.dailyMacros = {};
+  if (!parsed.foodLog) parsed.foodLog = {};
+  if (!parsed.suppHistory) parsed.suppHistory = {};
+  if (!parsed.customExercises) parsed.customExercises = [];
+  if (!parsed.builtinExercises) parsed.builtinExercises = defaultState().builtinExercises;
+  if (parsed.builtinExercises) Object.values(parsed.builtinExercises).forEach(arr => arr.forEach(ex => delete ex.rest));
+  if (!parsed.workoutPlans) parsed.workoutPlans = defaultState().workoutPlans;
+  if (!parsed.planRestMin) parsed.planRestMin = defaultState().planRestMin;
+  if (!parsed.exerciseOrder) parsed.exerciseOrder = {};
+  if (!parsed.customQuests) parsed.customQuests = [];
+  if (!parsed.systemQuestDone) parsed.systemQuestDone = {};
+  if (!parsed.yearPts) parsed.yearPts = 0;
+  if (!parsed.dailyPts) parsed.dailyPts = {};
+  if (!parsed.pendingActions) parsed.pendingActions = [];
+  if (!parsed.habitDayLog) parsed.habitDayLog = {};
+  if (!parsed.records) parsed.records = {};
+  if (!parsed.cardioRecords) parsed.cardioRecords = {};
+  if (!parsed.deletedBuiltins) parsed.deletedBuiltins = [];
+  if (!parsed.completedChallenges) parsed.completedChallenges = {};
+  return parsed;
+}
+
+function loadState() {
+  // Sync load from localStorage for immediate startup
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return applyMigrations(JSON.parse(raw));
+  } catch(e) {}
+  return defaultState();
+}
+
+// After DOM ready, also check IDB (may have newer data if localStorage was cleared)
+async function syncFromIDB() {
+  try {
+    const raw = await loadFromIDB();
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    // Use IDB version if localStorage was empty or IDB has more recent activity
+    const lsDay = S.lastActiveDay;
+    const idbDay = parsed.lastActiveDay;
+    const lsYearPts = S.yearPts || 0;
+    const idbYearPts = parsed.yearPts || 0;
+    // IDB wins if it has more data (more points = more activity recorded)
+    if (!lsDay || idbYearPts > lsYearPts || (idbYearPts === lsYearPts && idbDay && idbDay >= lsDay)) {
+      const migrated = applyMigrations(parsed);
+      // Only update if IDB actually has more/newer data
+      if (idbYearPts > lsYearPts || !lsDay) {
+        S = migrated;
+        save();
+        init();
+      }
+    }
+  } catch(e) {}
 }
 
 // =====================================================================
@@ -926,6 +1348,7 @@ function renderToday() {
   renderQuests();
   renderHabits();
   renderPendingActions();
+  renderChallenges();
 }
 
 function updateTodayTiles() {
@@ -971,8 +1394,7 @@ function renderQuests() {
   const tbody=document.getElementById('quests-body');
   const catIcons={workout:'⚔️',nutrition:'🧪',focus:'🔮',habit:'✅',other:'⭐'};
 
-  // System quests rows
-  const sysRows = SYSTEM_QUESTS.map(sq=>{
+  tbody.innerHTML = SYSTEM_QUESTS.map(sq=>{
     const done=S.systemQuestDone?.[sq.id]||false;
     return `<tr class="${done?'done':''}">
       <td><div class="quest-chk ${done?'on':''}">${done?'✓':''}</div></td>
@@ -981,21 +1403,7 @@ function renderQuests() {
       <td><span class="q-pts">+${sq.pts}</span></td>
       <td><span style="font-size:15px;color:var(--border)">🔒</span></td>
     </tr>`;
-  });
-
-  // Custom quests rows
-  const custRows = (S.customQuests||[]).map(q=>{
-    const done=q.type==='weekly'?q.doneWeek:q.doneToday;
-    return `<tr class="${done?'done':''}">
-      <td><div class="quest-chk ${done?'on':''}" onclick="toggleCustomQuest(${q.id})">${done?'✓':''}</div></td>
-      <td style="${done?'text-decoration:line-through':''}">${catIcons[q.cat]||'⭐'} ${q.desc}</td>
-      <td><span class="q-type">${q.type==='weekly'?'TYDZIEŃ':'DZIŚ'}</span></td>
-      <td><span class="q-pts">+${q.pts}</span></td>
-      <td><button class="del-btn" onclick="deleteCustomQuest(${q.id})" style="font-size:14px">✕</button></td>
-    </tr>`;
-  });
-
-  tbody.innerHTML = [...sysRows,...custRows].join('');
+  }).join('');
 }
 
 function autoCheckSystemQuests() {
@@ -1007,31 +1415,11 @@ function autoCheckSystemQuests() {
   });
 }
 
-function toggleCustomQuest(id) {
-  const q=(S.customQuests||[]).find(x=>x.id===id); if(!q) return;
-  if (q.type==='weekly') {
-    if (!q.doneWeek) { q.doneWeek=true; queuePts(q.pts,'Quest: '+q.desc); }
-    else q.doneWeek=false;
-  } else {
-    if (!q.doneToday) { q.doneToday=true; queuePts(q.pts,'Quest: '+q.desc); }
-    else q.doneToday=false;
-  }
-  save(); renderQuests(); renderPendingActions();
-}
 
-function deleteCustomQuest(id) {
-  confirmDlg('Usunąć ten quest?', ()=>{ S.customQuests=S.customQuests.filter(q=>q.id!==id); save(); renderQuests(); });
-}
 
-function saveQuest() {
-  const desc=document.getElementById('quest-desc-inp').value.trim(); if(!desc) return;
-  const editId=parseInt(document.getElementById('quest-edit-id').value);
-  const q={ id:editId||Date.now(), desc, type:document.getElementById('quest-type-inp').value, cat:document.getElementById('quest-cat-inp').value, pts:parseInt(document.getElementById('quest-pts-inp').value)||20, doneToday:false, doneWeek:false };
-  if (!S.customQuests) S.customQuests=[];
-  if (editId) { const i=S.customQuests.findIndex(x=>x.id===editId); if(i>=0) S.customQuests[i]=q; }
-  else S.customQuests.push(q);
-  save(); renderQuests(); closeModal('quest-modal'); showToast('Quest dodany!');
-}
+
+
+
 
 // ─── HABITS ───
 function renderHabits() {
@@ -1110,13 +1498,26 @@ function ensurePlans() {
   if (!S.currentSets) S.currentSets={};
   if (!S.currentPlan) S.currentPlan='push';
   if (!S.planRestMin) S.planRestMin=defaultState().planRestMin;
+  if (!S.exerciseOrder) S.exerciseOrder={};
 }
 
 function getExercises(planId) {
   const deleted = new Set(S.deletedBuiltins || []);
   const builtin = ((S.builtinExercises||{})[planId]||[]).filter(e => !deleted.has(planId+'::'+e.id));
   const custom = (S.customExercises||[]).filter(e=>e.planId===planId);
-  return [...builtin,...custom];
+  const all = [...builtin, ...custom];
+  // Apply saved order
+  const order = (S.exerciseOrder||{})[planId];
+  if (order && order.length) {
+    all.sort((a,b) => {
+      const ai = order.indexOf(a.id), bi = order.indexOf(b.id);
+      if (ai === -1 && bi === -1) return 0;
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+  }
+  return all;
 }
 
 function renderWorkout() {
@@ -1133,15 +1534,16 @@ function renderFinishButton() {
   const today = new Date().toDateString();
   const plan = S.workoutPlans.find(p=>p.id===S.currentPlan);
   const planName = plan?.name || S.currentPlan;
-  const alreadyDone = (S.workouts||[]).some(w =>
-    w.day === today && (w.type === S.currentPlan || w.planName === planName)
-  );
+  // Block only same plan ID on same day
+  const alreadyDone = (S.workouts||[]).some(w => w.day === today && w.type === S.currentPlan);
   if (alreadyDone) {
+    const otherToday = (S.workouts||[]).filter(w=>w.day===today && w.type!==S.currentPlan).map(w=>w.planName||w.type);
+    const otherStr = otherToday.length ? `<div style="font-size:13px;color:var(--muted);margin-top:6px;text-align:center">Dziś zapisano też: ${otherToday.join(', ')}</div>` : '';
     wrap.innerHTML = `
       <div style="border:var(--px) solid var(--accent);padding:14px;text-align:center;background:rgba(127,255,127,.06)">
         <div style="font-family:'Press Start 2P';font-size:10px;color:var(--accent)">✓ ZAPISANO</div>
         <div style="font-size:13px;color:var(--muted);margin-top:6px">${planName} · dzisiaj</div>
-      </div>`;
+      </div>${otherStr}`;
   } else {
     const otherToday = (S.workouts||[]).filter(w=>w.day===today).map(w=>w.planName||w.type);
     const infoStr = otherToday.length ? `<div style="font-size:13px;color:var(--muted);margin-top:6px;text-align:center">Dziś zapisano: ${otherToday.join(', ')}</div>` : '';
@@ -1210,8 +1612,11 @@ function renderExercises() {
     const sets=S.currentSets[S.currentPlan][ex.id]||[];
     const allDone=sets.length&&sets.every(s=>s.done);
     const custom=ex.custom;
-    return `<div class="ex-card" id="exc-${ex.id}">
+    return `<div class="ex-card" id="exc-${ex.id}" data-exid="${ex.id}">
       <div class="ex-head" onclick="toggleEx('${ex.id}')">
+        <div style="padding:0 8px 0 0;color:var(--muted);font-size:20px;cursor:grab;touch-action:none" 
+             onmousedown="startDrag(event,'${ex.id}')" ontouchstart="startDrag(event,'${ex.id}')"
+             onclick="event.stopPropagation()">⠿</div>
         <div style="flex:1;min-width:0">
           <div class="ex-name" style="${allDone?'color:var(--accent)':''}">${allDone?'✓ ':''}${ex.icon||''} ${ex.name}</div>
           <div class="ex-meta">${custom?'<span style="color:var(--accent3)">własne</span>':''}</div>
@@ -1305,10 +1710,8 @@ function finishWorkout() {
   const plan = S.workoutPlans.find(p=>p.id===S.currentPlan);
   const planName = plan?.name || S.currentPlan;
 
-  // One per plan per day — check both type and planName
-  const alreadyDone = (S.workouts||[]).some(w =>
-    w.day === today && (w.type === S.currentPlan || w.planName === planName)
-  );
+  // Block only same plan ID on same day
+  const alreadyDone = (S.workouts||[]).some(w => w.day === today && w.type === S.currentPlan);
   if (alreadyDone) {
     showToast('Trening '+planName+' już dziś zapisany!');
     return;
@@ -1318,7 +1721,9 @@ function finishWorkout() {
       const type=document.getElementById('cardio-type')?.value||'Cardio';
       const time=parseInt(document.getElementById('cardio-time')?.value)||0;
       const hr=parseInt(document.getElementById('cardio-hr')?.value)||0;
-      S.workouts.push({type:'cardio',planName:'CARDIO',time,hr,day:today});
+      const dist=parseFloat(document.getElementById('cardio-dist')?.value)||0;
+      S.workouts.push({type:'cardio',planName:'CARDIO',time,hr,dist,day:today});
+      updateCardioRecord(type, time, dist);
       queuePts(25,'Cardio: '+type+' '+time+'min');
       showToast('Cardio zapisane!');
     } else {
@@ -1347,10 +1752,98 @@ function updateRecords(setsCopy) {
       if (s.weight>0&&s.reps>0) {
         const k=ex.exName;
         if (!S.records[k]||s.weight>S.records[k].weight||(s.weight===S.records[k].weight&&s.reps>S.records[k].reps)) {
-          S.records[k]={weight:s.weight,reps:s.reps,date:new Date().toDateString()};
+          S.records[k]={weight:s.weight,reps:s.reps,date:new Date().toDateString(),auto:true};
         }
       }
     });
+  });
+}
+
+function updateCardioRecord(type, time, dist) {
+  if (!S.cardioRecords) S.cardioRecords={};
+  if (!S.cardioRecords[type]||time>S.cardioRecords[type].time||(time===S.cardioRecords[type].time&&dist>S.cardioRecords[type].dist)) {
+    S.cardioRecords[type]={time,dist,date:new Date().toDateString(),auto:true};
+  }
+}
+
+// Manual record modals
+function openStrengthRecordModal(key) {
+  if (key) {
+    const r=S.records[key];
+    document.getElementById('rec-str-title').textContent='EDYTUJ REKORD';
+    document.getElementById('rec-str-edit-key').value=key;
+    document.getElementById('rec-str-name').value=key;
+    document.getElementById('rec-str-weight').value=r.weight;
+    document.getElementById('rec-str-reps').value=r.reps;
+    document.getElementById('rec-str-date').value=toInputDate(r.date);
+  } else {
+    document.getElementById('rec-str-title').textContent='REKORD SIŁOWY';
+    document.getElementById('rec-str-edit-key').value='';
+    document.getElementById('rec-str-name').value='';
+    document.getElementById('rec-str-weight').value=0;
+    document.getElementById('rec-str-reps').value=1;
+    document.getElementById('rec-str-date').value=toInputDate(new Date().toDateString());
+  }
+  openModal('record-strength-modal');
+}
+
+function openCardioRecordModal(key) {
+  if (key) {
+    const r=S.cardioRecords[key];
+    document.getElementById('rec-cardio-title').textContent='EDYTUJ REKORD';
+    document.getElementById('rec-cardio-edit-key').value=key;
+    document.getElementById('rec-cardio-name').value=key;
+    document.getElementById('rec-cardio-time').value=r.time;
+    document.getElementById('rec-cardio-dist').value=r.dist||0;
+    document.getElementById('rec-cardio-date').value=toInputDate(r.date);
+  } else {
+    document.getElementById('rec-cardio-title').textContent='REKORD CARDIO';
+    document.getElementById('rec-cardio-edit-key').value='';
+    document.getElementById('rec-cardio-name').value='';
+    document.getElementById('rec-cardio-time').value=30;
+    document.getElementById('rec-cardio-dist').value=0;
+    document.getElementById('rec-cardio-date').value=toInputDate(new Date().toDateString());
+  }
+  openModal('record-cardio-modal');
+}
+
+function toInputDate(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return new Date().toISOString().slice(0,10);
+  return d.toISOString().slice(0,10);
+}
+
+function saveStrengthRecord() {
+  const name=document.getElementById('rec-str-name').value.trim(); if(!name) return;
+  const oldKey=document.getElementById('rec-str-edit-key').value;
+  const weight=parseFloat(document.getElementById('rec-str-weight').value)||0;
+  const reps=parseInt(document.getElementById('rec-str-reps').value)||1;
+  const date=new Date(document.getElementById('rec-str-date').value).toDateString();
+  if (!S.records) S.records={};
+  if (oldKey && oldKey!==name) delete S.records[oldKey];
+  S.records[name]={weight,reps,date,auto:false};
+  save(); renderStatsRecords(); closeModal('record-strength-modal');
+  showToast('Rekord zapisany!');
+}
+
+function saveCardioRecord() {
+  const name=document.getElementById('rec-cardio-name').value.trim(); if(!name) return;
+  const oldKey=document.getElementById('rec-cardio-edit-key').value;
+  const time=parseInt(document.getElementById('rec-cardio-time').value)||0;
+  const dist=parseFloat(document.getElementById('rec-cardio-dist').value)||0;
+  const date=new Date(document.getElementById('rec-cardio-date').value).toDateString();
+  if (!S.cardioRecords) S.cardioRecords={};
+  if (oldKey && oldKey!==name) delete S.cardioRecords[oldKey];
+  S.cardioRecords[name]={time,dist,date,auto:false};
+  save(); renderStatsRecords(); closeModal('record-cardio-modal');
+  showToast('Rekord cardio zapisany!');
+}
+
+function deleteRecord(type, key) {
+  confirmDlg('Usunąć rekord "'+key+'"?', ()=>{
+    if (type==='strength') delete S.records[key];
+    else delete S.cardioRecords[key];
+    save(); renderStatsRecords();
   });
 }
 
@@ -1814,6 +2307,201 @@ function drawFocusWeekChart() {
 // =====================================================================
 //  STATS PAGE
 // =====================================================================
+// =====================================================================
+//  CALENDAR — day history
+// =====================================================================
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+
+const MONTH_NAMES = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+
+function renderCalendar() {
+  const titleEl = document.getElementById('cal-title');
+  const gridEl  = document.getElementById('cal-grid');
+  if (!titleEl || !gridEl) return;
+
+  titleEl.textContent = MONTH_NAMES[calMonth] + ' ' + calYear;
+
+  const today = new Date();
+  const firstDay = new Date(calYear, calMonth, 1);
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  // Monday-first: 0=Mon ... 6=Sun
+  let startDow = (firstDay.getDay() + 6) % 7;
+
+  let cells = '';
+  // Empty cells before first day
+  for (let i = 0; i < startDow; i++) cells += '<div class="cal-cell empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const dateStr = date.toDateString();
+    const isToday = (date.toDateString() === today.toDateString());
+    const isFuture = date > today;
+
+    // Collect activity dots
+    const dots = getDayDots(dateStr);
+    const dotsHtml = dots.map(c => `<div class="cal-dot" style="background:${c}"></div>`).join('');
+
+    cells += `<div class="cal-cell ${isToday?'today':''} ${isFuture?'future':''}"
+      onclick="${isFuture ? '' : `openDayDetail('${dateStr}')`}">
+      <div class="cal-num">${d}</div>
+      <div class="cal-dots">${dotsHtml}</div>
+    </div>`;
+  }
+
+  gridEl.innerHTML = cells;
+}
+
+function getDayDots(dateStr) {
+  const dots = [];
+  // Green = workout
+  if ((S.workouts||[]).some(w => w.day === dateStr)) dots.push('var(--accent)');
+  // Blue = focus
+  if ((S.focusSessions||[]).some(s => s.day === dateStr)) dots.push('var(--accent2)');
+  // Orange = protein goal
+  const m = (S.macros||[])[0];
+  if (m && (S.dailyMacros[dateStr]||{})[m.id] >= m.goal) dots.push('var(--accent3)');
+  // Pink = habits done
+  if ((S.habitDayLog||{})[dateStr]) dots.push('var(--accent4)');
+  // Points dot (any points)
+  return dots;
+}
+
+function calPrev() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function calNext() {
+  const now = new Date();
+  if (calYear > now.getFullYear() || (calYear === now.getFullYear() && calMonth >= now.getMonth())) return;
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+function openDayDetail(dateStr) {
+  const date = new Date(dateStr);
+  const dayNames = ['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
+  const label = dayNames[date.getDay()] + ', ' + date.getDate() + ' ' + MONTH_NAMES[date.getMonth()] + ' ' + date.getFullYear();
+
+  document.getElementById('day-modal-title').textContent = label;
+  document.getElementById('day-modal-content').innerHTML = buildDayDetail(dateStr);
+  openModal('day-modal');
+}
+
+function buildDayDetail(dateStr) {
+  let html = '';
+
+  // ── TRENING ──
+  const dayWorkouts = (S.workouts||[]).filter(w => w.day === dateStr);
+  html += `<div class="day-section"><div class="day-section-title">⚔️ TRENING</div>`;
+  if (dayWorkouts.length) {
+    dayWorkouts.forEach(w => {
+      if (w.type === 'cardio') {
+        html += `<div class="day-row">
+          <div><div>${w.planName||'Cardio'} — ${w.subtype||w.type}</div>
+          <div style="font-size:12px;color:var(--muted)">Tętno: ${w.hr||'—'} bpm${w.dist?' · '+w.dist+'km':''}</div></div>
+          <div class="day-val">${w.time||0} min</div>
+        </div>`;
+      } else {
+        html += `<div class="day-row"><div>${w.planName||w.type}</div><div class="day-val">${w.volume||0} kg vol.</div></div>`;
+        // Show sets if available
+        if (w.sets && w.sets.length) {
+          w.sets.forEach(ex => {
+            const doneSets = ex.sets.filter(s => s.done || s.reps > 0);
+            if (!doneSets.length) return;
+            const setsStr = doneSets.map(s => `${s.reps}×${s.weight}kg`).join(' / ');
+            html += `<div style="padding:4px 0 4px 10px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--border)">
+              <span style="color:var(--text)">${ex.exName}</span><br>${setsStr}
+            </div>`;
+          });
+        }
+      }
+    });
+  } else {
+    html += `<div class="day-empty">Brak treningu</div>`;
+  }
+  html += `</div>`;
+
+  // ── ŻYWIENIE ──
+  html += `<div class="day-section"><div class="day-section-title">🧪 ŻYWIENIE</div>`;
+  const dayMacros = S.dailyMacros[dateStr] || {};
+  const macrosHasData = (S.macros||[]).some(m => dayMacros[m.id] > 0);
+  if (macrosHasData) {
+    (S.macros||[]).forEach(m => {
+      const val = dayMacros[m.id] || 0;
+      const pct = Math.round(val/m.goal*100);
+      const color = pct>=100?'var(--accent)':pct>=70?'var(--accent3)':'var(--muted)';
+      html += `<div class="day-row">
+        <span>${m.icon} ${m.name}</span>
+        <span class="day-val" style="color:${color}">${val}${m.unit} / ${m.goal}${m.unit}</span>
+      </div>`;
+    });
+  } else {
+    html += `<div class="day-empty">Brak danych żywienia</div>`;
+  }
+  // Food log entries
+  const dayFood = S.foodLog[dateStr] || [];
+  if (dayFood.length) {
+    html += `<div style="margin-top:6px;font-size:12px;color:var(--muted);margin-bottom:4px">POSIŁKI:</div>`;
+    dayFood.forEach(f => {
+      const macroStr = (S.macros||[]).map(m => f.macros[m.id]?`${m.icon}${f.macros[m.id]}${m.unit}`:null).filter(Boolean).join(' · ');
+      html += `<div style="padding:4px 0;font-size:13px;border-bottom:1px solid var(--border)">
+        <span>${f.name}</span>
+        ${macroStr ? `<span style="color:var(--muted)"> · ${macroStr}</span>` : ''}
+        <span style="float:right;color:var(--muted);font-size:11px">${f.time||''}</span>
+      </div>`;
+    });
+  }
+  // Supplements
+  const suppDone = (S.supplements||[]).filter(s => (S.suppHistory[s.id]||{})[dateStr] === true);
+  if (suppDone.length) {
+    html += `<div style="margin-top:8px;font-size:12px;color:var(--muted);margin-bottom:4px">SUPLEMENTY:</div>`;
+    html += suppDone.map(s => `<span style="margin-right:8px;font-size:14px">${s.icon} ${s.name}</span>`).join('');
+  }
+  html += `</div>`;
+
+  // ── FOCUS ──
+  const dayFocus = (S.focusSessions||[]).filter(s => s.day === dateStr);
+  html += `<div class="day-section"><div class="day-section-title">🔮 FOCUS</div>`;
+  if (dayFocus.length) {
+    const totalMin = dayFocus.reduce((a,s) => a+s.minutes, 0);
+    html += `<div class="day-row"><span>Łącznie</span><span class="day-val">${Math.floor(totalMin/60)}h ${totalMin%60}min</span></div>`;
+    dayFocus.forEach(s => {
+      html += `<div style="padding:4px 0;font-size:13px;color:var(--muted);border-bottom:1px solid var(--border)">
+        <span style="color:${s.catColor}">${s.catIcon||'🔮'} ${s.cat}</span>
+        <span style="float:right">${s.minutes} min · ${s.time||''}</span>
+      </div>`;
+    });
+  } else {
+    html += `<div class="day-empty">Brak sesji skupienia</div>`;
+  }
+  html += `</div>`;
+
+  // ── NAWYKI ──
+  html += `<div class="day-section"><div class="day-section-title">✅ NAWYKI</div>`;
+  const habitsAllDone = (S.habitDayLog||{})[dateStr];
+  if (habitsAllDone) {
+    html += `<div class="day-row"><span style="color:var(--accent)">✓ Wszystkie nawyki odhaczone</span></div>`;
+  } else {
+    html += `<div class="day-empty">Nawyki nieodhaczone lub brak danych</div>`;
+  }
+  html += `</div>`;
+
+  // ── PUNKTY ──
+  const pts = S.dailyPts[dateStr] || 0;
+  if (pts > 0) {
+    html += `<div style="text-align:center;padding:10px;border:var(--px) solid var(--accent3);background:rgba(255,191,127,.06)">
+      <div style="font-family:'Press Start 2P';font-size:10px;color:var(--accent3)">${pts} PKT</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">zdobyte tego dnia</div>
+    </div>`;
+  }
+
+  return html;
+}
+
 let activePeriod='week';
 
 function setPeriod(p) {
@@ -1843,6 +2531,7 @@ function daysInRange(range) {
 
 function renderStats() {
   const range=getRange(activePeriod), days=daysInRange(range);
+  renderCalendar();
   renderStatsGeneral(days);
   renderStatsWorkout(days);
   renderStatsNutrition(days);
@@ -1940,12 +2629,56 @@ function renderStatsFocus(days) {
 
 function renderStatsRecords() {
   const el=document.getElementById('stats-records');
-  if(!S.records||!Object.keys(S.records).length){el.innerHTML='<div style="padding:12px;font-size:14px;color:var(--muted)">Rekordy zbierane automatycznie podczas treningu.</div>';return;}
-  el.innerHTML=Object.entries(S.records).map(([name,r])=>`
-    <div class="record-row">
-      <div><div class="record-name">${name}</div><div style="font-size:13px;color:var(--muted)">${r.date}</div></div>
-      <div class="record-val">${r.weight}kg × ${r.reps}</div>
-    </div>`).join('');
+  const strEntries=Object.entries(S.records||{}).sort((a,b)=>a[0].localeCompare(b[0]));
+  const cardioEntries=Object.entries(S.cardioRecords||{}).sort((a,b)=>a[0].localeCompare(b[0]));
+
+  let html='';
+
+  // Strength records
+  html+=`<div style="padding:10px 12px;border-bottom:var(--px) solid var(--border);display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:'Press Start 2P';font-size:9px;color:var(--accent2)">⚔️ SIŁOWE</span>
+    <button class="btn sm b2" style="margin-top:0" onclick="openStrengthRecordModal('')">+ DODAJ</button>
+  </div>`;
+  if (strEntries.length) {
+    html+=strEntries.map(([name,r])=>`
+      <div class="record-row">
+        <div style="flex:1;min-width:0">
+          <div class="record-name">${name}</div>
+          <div style="font-size:13px;color:var(--muted)">${r.date}${r.auto?' · auto':''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="record-val">${r.weight}kg × ${r.reps}</div>
+          <button class="del-btn" onclick="openStrengthRecordModal('${name.replace(/'/g,"\\'")}')">✎</button>
+          <button class="del-btn" onclick="deleteRecord('strength','${name.replace(/'/g,"\\'")}')">✕</button>
+        </div>
+      </div>`).join('');
+  } else {
+    html+=`<div style="padding:12px;font-size:13px;color:var(--muted)">Brak rekordów. Dodaj ręcznie lub zakończ trening siłowy.</div>`;
+  }
+
+  // Cardio records
+  html+=`<div style="padding:10px 12px;border-top:var(--px) solid var(--border);border-bottom:var(--px) solid var(--border);display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+    <span style="font-family:'Press Start 2P';font-size:9px;color:var(--accent)">🏃 CARDIO</span>
+    <button class="btn sm" style="margin-top:0;border-color:var(--accent);color:var(--accent);box-shadow:var(--px) var(--px) 0 var(--accent)" onclick="openCardioRecordModal('')">+ DODAJ</button>
+  </div>`;
+  if (cardioEntries.length) {
+    html+=cardioEntries.map(([name,r])=>`
+      <div class="record-row">
+        <div style="flex:1;min-width:0">
+          <div class="record-name">${name}</div>
+          <div style="font-size:13px;color:var(--muted)">${r.date}${r.auto?' · auto':''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="record-val">${r.time}min${r.dist?' · '+r.dist+'km':''}</div>
+          <button class="del-btn" onclick="openCardioRecordModal('${name.replace(/'/g,"\\'")}')">✎</button>
+          <button class="del-btn" onclick="deleteRecord('cardio','${name.replace(/'/g,"\\'")}')">✕</button>
+        </div>
+      </div>`).join('');
+  } else {
+    html+=`<div style="padding:12px;font-size:13px;color:var(--muted)">Brak rekordów. Dodaj ręcznie lub zakończ trening cardio.</div>`;
+  }
+
+  el.innerHTML=html;
 }
 
 function renderAchievements() {
@@ -2074,6 +2807,11 @@ function init(){
 function resetAllData() {
   confirmDlg('Usunąć WSZYSTKIE dane? Tej operacji nie można cofnąć.', () => {
     localStorage.removeItem(STORAGE_KEY);
+    // Also clear IDB
+    openIDB().then(db => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(IDB_KEY);
+    }).catch(()=>{});
     S = defaultState();
     save();
     init();
@@ -2081,32 +2819,95 @@ function resetAllData() {
   }, 'TAK, USUŃ WSZYSTKO');
 }
 
-window.addEventListener('load',init);
+// =====================================================================
+//  DRAG AND DROP — exercise reordering (touch + mouse)
+// =====================================================================
+let _drag = null;
+
+function startDrag(e, exId) {
+  e.stopPropagation();
+  const card = document.getElementById('exc-'+exId);
+  if (!card) return;
+  // Close if open
+  const body = document.getElementById('ebody-'+exId);
+  if (body?.classList.contains('open')) {
+    body.classList.remove('open');
+    document.getElementById('etog-'+exId)?.classList.remove('open');
+  }
+  const container = document.getElementById('workout-content');
+  const rect = card.getBoundingClientRect();
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const offsetY = clientY - rect.top;
+  const ghost = card.cloneNode(true);
+  ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;pointer-events:none;z-index:999;border:2px solid var(--accent2);box-shadow:0 4px 20px rgba(0,0,0,.6)`;
+  document.body.appendChild(ghost);
+  card.style.opacity = '0.25';
+  _drag = { exId, card, ghost, container, insertBefore: null };
+
+  const move = ev => {
+    ev.preventDefault();
+    const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    ghost.style.top = (cy - offsetY)+'px';
+    const siblings = [...container.querySelectorAll('.ex-card')].filter(c=>c!==card);
+    let ib = null;
+    for (const sib of siblings) {
+      const sr = sib.getBoundingClientRect();
+      if (cy < sr.top + sr.height/2) { ib = sib; break; }
+    }
+    _drag.insertBefore = ib;
+    container.querySelectorAll('.drag-line').forEach(l=>l.remove());
+    const line = document.createElement('div');
+    line.className = 'drag-line';
+    line.style.cssText = 'height:3px;background:var(--accent2);margin:2px 0;transition:none';
+    if (ib) ib.before(line);
+    else container.appendChild(line);
+  };
+
+  const end = () => {
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('touchend', end);
+    if (!_drag) return;
+    ghost.remove();
+    container.querySelectorAll('.drag-line').forEach(l=>l.remove());
+    card.style.opacity = '';
+    const allCards = [...container.querySelectorAll('.ex-card')];
+    const fromIdx = allCards.findIndex(c=>c.dataset.exid===exId);
+    const ib = _drag.insertBefore;
+    let toIdx = ib ? allCards.findIndex(c=>c===ib) : allCards.length;
+    _drag = null;
+    if (fromIdx < 0 || fromIdx === toIdx) return;
+    const exercises = getExercises(S.currentPlan);
+    const moved = exercises.splice(fromIdx, 1)[0];
+    if (toIdx > fromIdx) toIdx--;
+    exercises.splice(toIdx, 0, moved);
+    if (!S.exerciseOrder) S.exerciseOrder = {};
+    S.exerciseOrder[S.currentPlan] = exercises.map(e=>e.id);
+    save();
+    renderExercises();
+  };
+
+  document.addEventListener('mousemove', move, {passive:false});
+  document.addEventListener('mouseup', end);
+  document.addEventListener('touchmove', move, {passive:false});
+  document.addEventListener('touchend', end);
+}
+
+window.addEventListener('load', () => {
+  init();
+  syncFromIDB(); // restore from IDB if localStorage was cleared
+});
 window.addEventListener('resize',()=>{
   if(document.getElementById('page-nutrition').classList.contains('active'))renderProteinWeekChart();
   if(document.getElementById('page-focus').classList.contains('active'))drawFocusWeekChart();
 });
 
-// =====================================================================
-//  SERVICE WORKER — offline support
-// =====================================================================
+// Service Worker for offline
 if ('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE = 'liferpg-v1';
-    self.addEventListener('install', e => {
-      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html'])).catch(()=>{}));
-      self.skipWaiting();
-    });
-    self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
-    self.addEventListener('fetch', e => {
-      e.respondWith(
-        fetch(e.request).catch(() => caches.match(e.request))
-      );
-    });
-  `;
-  const blob = new Blob([swCode], {type:'application/javascript'});
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl).catch(()=>{});
+  const swCode = `const CACHE='liferpg-v1';self.addEventListener('install',e=>{self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});`;
+  const blob = new Blob([swCode],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
 }
 </script>
 </body></html>
