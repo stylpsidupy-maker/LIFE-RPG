@@ -571,6 +571,25 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .pts-pop{position:fixed;bottom:calc(var(--navh) + 70px);right:18px;z-index:300;font-family:'Space Grotesk','Inter','Noto Emoji',sans-serif;font-size:20px;font-weight:700;color:var(--accent3);pointer-events:none;animation:ptsUp 1.4s forwards;text-shadow:0 2px 12px rgba(0,0,0,.6)}
 @keyframes ptsUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-56px)}}
 
+.ex-sub{font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ex-sub b{color:var(--accent2);font-weight:600}
+.ex-sub .sep{opacity:.4}
+/* ===================== CELE SKUPIENIA ===================== */
+.fg-item{border:var(--px) solid var(--hair);background:var(--card2);border-radius:var(--r-md);padding:11px 12px;margin-bottom:8px}
+.fg-top{display:flex;align-items:baseline;gap:8px}
+.fg-name{font-size:14px;font-weight:600;flex:1;min-width:0}
+.fg-val{font-family:'Space Grotesk','Noto Emoji';font-weight:700;font-size:14px;white-space:nowrap}
+.fg-bar{height:7px;border-radius:4px;background:var(--card);overflow:hidden;margin-top:8px}
+.fg-bar i{display:block;height:100%;border-radius:4px;background:var(--accent5);transition:width .3s}
+.fg-bar i.ok{background:var(--ok,var(--accent2))}
+.fg-sub{font-size:11.5px;color:var(--muted);margin-top:5px}
+/* ===================== OCENA DNIA ===================== */
+.dr-scale{display:flex;gap:6px;margin-top:6px}
+.dr-opt{flex:1;background:var(--card2);border:var(--px) solid var(--border);border-radius:10px;padding:11px 4px;text-align:center;cursor:pointer}
+.dr-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.dr-num{font-size:17px;font-weight:700;font-family:'Space Grotesk','Noto Emoji'}
+.dr-lbl{font-size:9.5px;color:var(--muted);margin-top:2px;line-height:1.2}
+/* ===================== CELE SKUPIENIA KONIEC ===================== */
 /* ===================== HISTORIA TRENINGOW ===================== */
 .wh-day{border:var(--px) solid var(--hair);background:var(--card2);border-radius:var(--r-md);margin-bottom:8px;overflow:hidden}
 .wh-head{display:flex;align-items:center;gap:9px;padding:11px 12px;cursor:pointer}
@@ -589,6 +608,11 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .wh-stars{color:var(--accent3);font-size:12px;letter-spacing:1px;margin-left:auto;white-space:nowrap}
 .wh-stars i{color:var(--border);font-style:normal}
 .wh-none{font-size:13px;color:var(--muted);padding:2px 0 0 4px}
+#rest-bar.warn{border-color:var(--accent3);box-shadow:0 0 0 1px var(--accent3),0 0 22px rgba(255,61,154,.3)}
+#rest-bar.warn #rest-bar-time{color:var(--accent3)}
+.set-secs.warn,.pomo-time.warn{color:var(--accent3)!important}
+@keyframes pulsOstatnie{0%,100%{opacity:1}50%{opacity:.45}}
+#rest-bar.warn #rest-bar-time,.set-secs.warn{animation:pulsOstatnie 1s ease-in-out infinite}
 /* ===================== SERIA: CZAS I SAMOPOCZUCIE ===================== */
 .feel-row td{padding-top:0!important;padding-bottom:9px!important}
 .feel-wrap{display:flex;align-items:center;gap:3px}
@@ -801,6 +825,10 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
     <div class="pomo-dots" id="pomo-dots"></div>
   </div>
 
+  <div class="section-title">🎯 Cele skupienia</div>
+  <div id="focus-goals"></div>
+  <button class="btn sm b2" onclick="openFocusGoalModal()">+ Cel skupienia</button>
+
   <div class="section-title">🏷 KATEGORIA SESJI</div>
   <div id="focus-cats-list"></div>
   <button class="btn sm b2" onclick="openFocusCatModal()">+ KATEGORIA</button>
@@ -871,6 +899,9 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
   <div class="sec-hint">Czego się spodziewałeś przed zrobieniem rzeczy, a co wyszło po.</div>
   <div id="ba-gap"></div>
   <button class="btn sm b3" id="review-btn" onclick="openWeekReview()" style="margin-top:10px">Przegląd tygodnia</button>
+
+  <div class="section-title">📝 Ocena dnia</div>
+  <div class="pbox" style="padding:14px;margin-bottom:10px" id="stats-dayrev"></div>
 
   <div class="section-title">😴 Sen</div>
   <div class="pbox" style="padding:14px;margin-bottom:10px" id="stats-sleep"></div>
@@ -1078,6 +1109,38 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
   <button class="btn" onclick="saveMacro()" style="margin-top:14px">DODAJ</button>
 </div></div>
 
+<!-- CEL SKUPIENIA -->
+<div class="overlay" id="fgoal-modal">
+<div class="modal">
+  <button class="modal-close" onclick="closeModal('fgoal-modal')">&#10005;</button>
+  <div class="modal-title" id="fgoal-title">NOWY CEL SKUPIENIA</div>
+  <input type="hidden" id="fgoal-edit-id">
+  <label style="margin-top:0">Czego dotyczy</label>
+  <select id="fgoal-cat"></select>
+  <label>Ile minut</label>
+  <input type="number" id="fgoal-min" value="45" min="5" step="5">
+  <label>W jakim okresie</label>
+  <div class="meal-slot-row" id="fgoal-period"></div>
+  <input type="hidden" id="fgoal-period-val" value="week">
+  <button class="btn" onclick="saveFocusGoal()">ZAPISZ CEL</button>
+</div></div>
+
+<!-- OCENA MINIONEGO DNIA -->
+<div class="overlay" id="dayrev-modal">
+<div class="modal">
+  <button class="modal-close" onclick="closeModal('dayrev-modal')">&#10005;</button>
+  <div class="modal-title" id="dayrev-title">JAK MINĄŁ WCZORAJSZY DZIEŃ?</div>
+  <div id="dayrev-facts" class="fg-sub" style="margin-bottom:10px"></div>
+  <label style="margin-top:0">Ocena dnia</label>
+  <div class="dr-scale" id="dayrev-scale"></div>
+  <input type="hidden" id="dayrev-val" value="3">
+  <label>Co zadecydowało? (opcjonalnie)</label>
+  <input id="dayrev-note" placeholder="np. za późno spałem, dużo przerw">
+  <button class="btn" onclick="saveDayReview()">ZAPISZ</button>
+  <button class="btn b2" onclick="skipDayReview()" style="margin-top:8px">Pomiń</button>
+</div></div>
+
+<!-- CEL SKUPIENIA KONIEC -->
 <!-- HISTORIA TRENINGOW PLANU -->
 <div class="overlay" id="plan-hist-modal">
 <div class="modal">
@@ -1457,6 +1520,8 @@ function defaultState() {
 
     // SEN — { dateStr: {from,to,hours,rest} } lub { skipped:true }
     sleepLog: {},
+    focusGoals: [],
+    dayReview: {},
     focusTimer: null,
     exTimer: null,
     // POMODORO: przerwa jest faza timera, nie presetem. Preset 5 min
@@ -1617,6 +1682,8 @@ function applyMigrations(parsed) {
   if (!parsed.cardioRecords) parsed.cardioRecords = {};
   if (!parsed.deletedBuiltins) parsed.deletedBuiltins = [];
   if (!parsed.sleepLog) parsed.sleepLog = {};
+  if (!parsed.focusGoals) parsed.focusGoals = [];
+  if (!parsed.dayReview) parsed.dayReview = {};
   // Suplementy: z opisowej dawki ("10g rano") na liczbe + jednostke, a historia
   // z true/false na LICZBE dawek. Bez tego nie da sie powiedziec "10 g dzis".
   (parsed.supplements || []).forEach(function (s) {
@@ -3069,6 +3136,50 @@ function lastSetLabel(exId, idx) {
 }
 
 // Jeden przebieg wstecz po historii zamiast osobnego skanu na kazdy wiersz serii.
+// Kolejnosc szukania przerwy: wlasne ustawienie cwiczenia -> wartosc
+// z biblioteki -> domysl planu. Srodkowy krok jest tu kluczowy: zapisany
+// stan, ktoremu biblioteka zgubila `rest`, spadal od razu na domysl planu
+// i kazde cwiczenie mialo te sama przerwe (push = 2.5 min = 2:30).
+function restForExercise(exId) {
+  const ex = getExercises(S.currentPlan).find(e => e.id === exId);
+  if (ex && ex.rest) return ex.rest;
+  const lib = defaultState().builtinExercises;
+  let zBiblioteki = 0;
+  Object.keys(lib).forEach(function (p) {
+    const d = lib[p].find(function (x) { return x.id === exId; });
+    if (d && d.rest) zBiblioteki = d.rest;
+  });
+  if (zBiblioteki) return zBiblioteki;
+  return Math.round((S.planRestMin && S.planRestMin[S.currentPlan] || 2) * 60);
+}
+
+// Kiedy to cwiczenie bylo robione ostatnio — z historii treningow.
+function ostatnioRobione(exId) {
+  const ws = S.workouts || [];
+  for (let i = ws.length - 1; i >= 0; i--) {
+    const ma = (ws[i].sets || []).some(function (e) { return e && e.exId === exId && (e.sets || []).length; });
+    if (ma) return ws[i].day;
+  }
+  return null;
+}
+
+// "dzis" / "wczoraj" / "3 dni temu" / data — liczba dni sama w sobie nic nie
+// mowi, dopoki nie widzi sie jej przy nazwie cwiczenia.
+function odKiedyTekst(dayStr) {
+  if (!dayStr) return null;
+  const d = new Date(dayStr); if (isNaN(d.getTime())) return null;
+  const dni = Math.round((todayStart() - dayStart(d)) / 86400000);
+  if (dni <= 0) return 'dzi\u015B';
+  if (dni === 1) return 'wczoraj';
+  if (dni < 7) return dni + ' dni temu';
+  return d.getDate() + '.' + (d.getMonth() + 1) + (dni > 300 ? '.' + String(d.getFullYear()).slice(2) : '');
+}
+
+function fmtPrzerwa(sek) {
+  const m = Math.floor(sek / 60), s = sek % 60;
+  return s ? (m ? m + ':' + String(s).padStart(2, '0') : s + ' s') : m + ' min';
+}
+
 function buildLastSetsMap() {
   const map = {};
   const ws = S.workouts || [];
@@ -3157,7 +3268,15 @@ function tickSetTimer() {
   if (!t) { if (_setIv) { clearInterval(_setIv); _setIv = null; } return; }
   const left = setTimerLeft();
   const el = document.getElementById('secs-' + t.exId + '-' + t.idx);
-  if (el) el.textContent = left;
+  if (el) {
+    el.textContent = left;
+    el.classList.toggle('warn', left > 0 && left <= OSTRZEZENIE_S && (t.plan || 0) > 30);
+  }
+  if (left > 0 && left <= OSTRZEZENIE_S && (t.plan || 0) > 30 && !t.ostrzezone) {
+    t.ostrzezone = true; save();
+    try { if (navigator.vibrate) navigator.vibrate(90); } catch(e){}
+    notify('Koniec serii za ' + left + ' s', 'Dotrzymaj pozycji.', 'set-warn');
+  }
   if (left > 0) return;
 
   if (_setIv) { clearInterval(_setIv); _setIv = null; }
@@ -3253,6 +3372,9 @@ function renderExercises() {
              onclick="event.stopPropagation()">⠿</div>
         <div style="flex:1;min-width:0">
           <div class="ex-name" style="${allDone?'color:var(--accent)':''}">${allDone?'✓ ':''}${exIco(ex.icon)} ${esc(ex.name)}</div>
+          ${(function(){ const kiedy=odKiedyTekst(ostatnioRobione(ex.id));
+            return '<div class="ex-sub">' + (kiedy?'<span>ostatnio <b>'+kiedy+'</b></span><span class="sep">·</span>':'<span>jeszcze nie robione</span><span class="sep">·</span>')
+              + '<span>przerwa <b>'+fmtPrzerwa(restForExercise(ex.id))+'</b></span></div>'; })()}
         </div>
         <div style="display:flex;align-items:center;gap:1px">
           <button class="del-btn edit" onclick="event.stopPropagation();editExerciseAny('${ex.id}',${!!custom})">✎</button>
@@ -3306,17 +3428,31 @@ function startRest(seconds) {
   if (restSkipTo) { clearTimeout(restSkipTo); restSkipTo = null; }
   if (!seconds || seconds <= 0) return;
   restEndsAt = Date.now() + seconds*1000;
+  restOstrzezone = false;
   const bar = document.getElementById('rest-bar');
-  if (bar) { bar.classList.add('on'); bar.classList.remove('done'); }
+  if (bar) { bar.classList.add('on'); bar.classList.remove('done'); bar.classList.remove('warn'); }
   if (restIv) clearInterval(restIv);
   restIv = setInterval(tickRest, 250);
   tickRest();
 }
 
+// Ile sekund przed koncem ostrzegamy.
+const OSTRZEZENIE_S = 15;
+let restOstrzezone = false;
+
 function tickRest() {
   const el = document.getElementById('rest-bar-time'); if (!el) return;
   const left = Math.max(0, Math.round((restEndsAt - Date.now())/1000));
   el.textContent = fmt(left);
+  const bar = document.getElementById('rest-bar');
+  if (left > 0 && left <= OSTRZEZENIE_S) {
+    if (bar) bar.classList.add('warn');
+    if (!restOstrzezone) {
+      restOstrzezone = true;
+      try { if (navigator.vibrate) navigator.vibrate(90); } catch(e){}
+      notify('Przerwa ko\u0144czy si\u0119', 'Zosta\u0142o ' + left + ' s \u2014 szykuj si\u0119 do serii.', 'rest-warn');
+    }
+  } else if (bar) bar.classList.remove('warn');
   if (left <= 0) {
     clearInterval(restIv); restIv = null;
     document.getElementById('rest-bar')?.classList.add('done');
@@ -3325,14 +3461,14 @@ function tickRest() {
   }
 }
 
-function addRest(sec) { if (restSkipTo) { clearTimeout(restSkipTo); restSkipTo = null; } if (restEndsAt) { restEndsAt += sec*1000; document.getElementById('rest-bar')?.classList.remove('done'); if(!restIv) restIv=setInterval(tickRest,250); tickRest(); } }
+function addRest(sec) { if (restSkipTo) { clearTimeout(restSkipTo); restSkipTo = null; } if (restEndsAt) { restEndsAt += sec*1000; restOstrzezone = false; document.getElementById('rest-bar')?.classList.remove('done'); if(!restIv) restIv=setInterval(tickRest,250); tickRest(); } }
 
 function skipRest() {
   if (restSkipTo) { clearTimeout(restSkipTo); restSkipTo = null; }
   if (restIv) clearInterval(restIv);
   restIv = null; restEndsAt = 0;
   const bar = document.getElementById('rest-bar');
-  if (bar) { bar.classList.remove('on'); bar.classList.remove('done'); }
+  if (bar) { bar.classList.remove('on'); bar.classList.remove('done'); bar.classList.remove('warn'); }
 }
 
 // Dźwięk generowany przez WebAudio — bez pliku, działa offline.
@@ -3351,11 +3487,7 @@ function restAlert() {
   showToast('⏰ Koniec przerwy!');
 }
 
-function restForExercise(exId) {
-  const ex = getExercises(S.currentPlan).find(e => e.id === exId);
-  if (ex && ex.rest) return ex.rest;
-  return Math.round((S.planRestMin?.[S.currentPlan] || 2) * 60);
-}
+
 
 function toggleEx(id) {
   document.getElementById('ebody-'+id)?.classList.toggle('open');
@@ -3646,6 +3778,7 @@ function openAddExercise() {
   document.getElementById('ex-sets-inp').value=3;
   document.getElementById('ex-reps-inp').value=10;
   document.getElementById('ex-weight-inp').value=0;
+  document.getElementById('ex-rest-inp').value=2;
   renderExModeChips('reps');
   pickerSelect('ex','ex:bench');
   const sel=document.getElementById('ex-plan-sel');
@@ -3663,6 +3796,7 @@ function editExercise(id) {
   document.getElementById('ex-sets-inp').value=ex.sets;
   document.getElementById('ex-reps-inp').value=ex.reps;
   document.getElementById('ex-weight-inp').value=ex.weight;
+  document.getElementById('ex-rest-inp').value=Math.round((ex.rest||120)/60*10)/10;
   renderExModeChips(exMode(ex));
   if (exMode(ex) === 'time') document.getElementById('ex-reps-inp').value = ex.secs || 45;
   pickerSelect('ex',ex.icon||'ex:bench');
@@ -3685,6 +3819,8 @@ function saveExercise() {
     reps:parseInt(document.getElementById('ex-reps-inp').value)||10,
     secs:parseInt(document.getElementById('ex-reps-inp').value)||45,
     weight:parseFloat(document.getElementById('ex-weight-inp').value)||0,
+    // Pole "Przerwa (min)" bylo w modalu od zawsze i nic nie zapisywalo.
+    rest:Math.max(0, Math.round((parseFloat(document.getElementById('ex-rest-inp').value)||2)*60)),
     custom:true
   };
   if (editId){const i=S.customExercises.findIndex(e=>e.id===editId);if(i>=0)S.customExercises[i]=ex;}
@@ -3724,6 +3860,7 @@ function editExerciseAny(id, isCustom) {
   document.getElementById('ex-sets-inp').value = ex.sets;
   document.getElementById('ex-reps-inp').value = ex.reps;
   document.getElementById('ex-weight-inp').value = ex.weight;
+  document.getElementById('ex-rest-inp').value = Math.round((ex.rest||restForExercise(ex.id))/60*10)/10;
   renderExModeChips(exMode(ex));
   if (exMode(ex) === 'time') document.getElementById('ex-reps-inp').value = ex.secs || 45;
   pickerSelect('ex', ex.icon||'ex:bench');
@@ -4370,7 +4507,7 @@ let timerSec=25*60,timerRunning=false,timerMode='work',timerStart=null,timerIv=n
 //  3. brak trybu otwartego — czasem siadasz do roboty nie wiedzac na ile.
 // =====================================================================
 
-function renderFocus() { renderFocusTimer(); renderFocusCats(); renderFocusLogToday(); drawFocusWeekChart(); }
+function renderFocus() { renderFocusTimer(); renderFocusGoals(); renderFocusCats(); renderFocusLogToday(); drawFocusWeekChart(); }
 
 // =====================================================================
 //  POMODORO — dwa liczniki obok siebie
@@ -4571,8 +4708,17 @@ function toggleStopwatch() {
 function focusTick() {
   const t = S.focusTimer;
   if (!t || t.pausedAt) return;
+  const left = focusSecondsLeft();
   renderFocusClocks();
-  if (t.kind === 'down' && focusSecondsLeft() <= 0) finishFocusPhase(false);
+  if (t.kind === 'down' && left > 0 && left <= OSTRZEZENIE_S && !t.ostrzezone) {
+    t.ostrzezone = true; save();
+    try { if (navigator.vibrate) navigator.vibrate(90); } catch(e){}
+    notify(t.mode === 'break' ? 'Przerwa ko\u0144czy si\u0119' : 'Sesja ko\u0144czy si\u0119',
+           'Zosta\u0142o ' + left + ' s.', 'focus-warn');
+  }
+  const czasEl = document.getElementById(t.mode === 'break' ? 'break-time' : 'work-time');
+  if (czasEl) czasEl.classList.toggle('warn', t.kind === 'down' && left > 0 && left <= OSTRZEZENIE_S);
+  if (t.kind === 'down' && left <= 0) finishFocusPhase(false);
 }
 function startFocusInterval() { stopFocusInterval(); focusIv = setInterval(focusTick, 250); }
 function stopFocusInterval()  { if (focusIv) { clearInterval(focusIv); focusIv = null; } }
@@ -4721,6 +4867,212 @@ function logFocusSession(minutes) {
   queuePts(minutes, 'Focus: ' + ((cat && cat.name) || 'Praca') + ' ' + minutes + 'min', false);
   save(); renderFocusLogToday(); drawFocusWeekChart(); updateTodayTiles(); renderPendingActions();
 }
+
+// =====================================================================
+//  CELE SKUPIENIA
+//  Wyzwanie stawia UZYTKOWNIK ("45 min nauki twardej w tygodniu"), a nie
+//  losowanie z puli — to ta sama zasada, co przy zleceniach tygodnia.
+//  Kategoria jest opcjonalna: bez niej cel liczy caly focus razem.
+// =====================================================================
+const FG_OKRESY = [{ id:'day', lbl:'Dziennie' }, { id:'week', lbl:'Tygodniowo' }];
+
+function focusGoals() { if (!S.focusGoals) S.focusGoals = []; return S.focusGoals; }
+
+function fgMinuty(cel) {
+  const dni = cel.period === 'day' ? [new Date().toDateString()] : weekDaysBack(0);
+  return bezPrzerw(S.focusSessions).filter(function (s) {
+    return dni.indexOf(s.day) >= 0 && (!cel.cat || s.cat === cel.cat);
+  }).reduce(function (a, s) { return a + (s.minutes || 0); }, 0);
+}
+
+function renderFocusGoals() {
+  const el = document.getElementById('focus-goals'); if (!el) return;
+  const cele = focusGoals();
+  if (!cele.length) {
+    el.innerHTML = '<div class="fg-sub">Brak cel\u00F3w. Postaw sobie wyzwanie \u2014 np. 45 minut nauki twardej tygodniowo.</div>';
+    return;
+  }
+  el.innerHTML = cele.map(function (c) {
+    const masz = fgMinuty(c);
+    const pct = Math.min(100, Math.round(masz / c.minutes * 100));
+    const zrobione = masz >= c.minutes;
+    const okres = c.period === 'day' ? 'dzi\u015B' : 'w tym tygodniu';
+    return '<div class="fg-item">' +
+      '<div class="fg-top"><span class="fg-name">' + (zrobione ? '\u2713 ' : '') + esc(c.cat || 'Ca\u0142y focus') + '</span>' +
+        '<span class="fg-val" style="color:' + (zrobione ? 'var(--accent2)' : 'var(--accent5)') + '">' +
+        masz + ' / ' + c.minutes + ' min</span>' +
+        '<button class="del-btn edit" onclick="editFocusGoal(' + c.id + ')">\u270E</button>' +
+        '<button class="del-btn rm" onclick="deleteFocusGoal(' + c.id + ')">\u2715</button></div>' +
+      '<div class="fg-bar"><i class="' + (zrobione ? 'ok' : '') + '" style="width:' + pct + '%"></i></div>' +
+      '<div class="fg-sub">' + okres + ' \u00B7 ' + (zrobione ? 'cel osi\u0105gni\u0119ty' : 'zosta\u0142o ' + (c.minutes - masz) + ' min') + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderFgPeriod(p) {
+  document.getElementById('fgoal-period-val').value = p;
+  document.getElementById('fgoal-period').innerHTML = FG_OKRESY.map(function (o) {
+    return '<div class="meal-slot ' + (o.id === p ? 'on' : '') + '" onclick="renderFgPeriod(\'' + o.id + '\')">' + o.lbl + '</div>';
+  }).join('');
+}
+function fillFgCat(sel) {
+  document.getElementById('fgoal-cat').innerHTML =
+    '<option value="">Ca\u0142y focus (wszystkie kategorie)</option>' +
+    (S.focusCats || []).map(function (c) {
+      return '<option value="' + esc(c.name) + '"' + (c.name === sel ? ' selected' : '') + '>' + esc(c.name) + '</option>';
+    }).join('');
+}
+function openFocusGoalModal() {
+  document.getElementById('fgoal-edit-id').value = '';
+  document.getElementById('fgoal-title').textContent = 'NOWY CEL SKUPIENIA';
+  document.getElementById('fgoal-min').value = 45;
+  fillFgCat(''); renderFgPeriod('week');
+  openModal('fgoal-modal');
+}
+function editFocusGoal(id) {
+  const c = focusGoals().find(function (x) { return x.id === id; }); if (!c) return;
+  document.getElementById('fgoal-edit-id').value = id;
+  document.getElementById('fgoal-title').textContent = 'EDYTUJ CEL';
+  document.getElementById('fgoal-min').value = c.minutes;
+  fillFgCat(c.cat || ''); renderFgPeriod(c.period || 'week');
+  openModal('fgoal-modal');
+}
+function saveFocusGoal() {
+  const min = parseInt(document.getElementById('fgoal-min').value, 10);
+  if (isNaN(min) || min < 1) { showToast('Podaj liczb\u0119 minut.'); return; }
+  const id = document.getElementById('fgoal-edit-id').value;
+  const obj = { cat: document.getElementById('fgoal-cat').value || null,
+                minutes: min, period: document.getElementById('fgoal-period-val').value };
+  if (id) { Object.assign(focusGoals().find(function (x) { return x.id === parseInt(id, 10); }) || {}, obj); }
+  else { focusGoals().push(Object.assign({ id: Date.now() }, obj)); }
+  save(); closeModal('fgoal-modal'); renderFocusGoals(); showToast('Cel zapisany.');
+}
+function deleteFocusGoal(id) {
+  const c = focusGoals().find(function (x) { return x.id === id; }); if (!c) return;
+  confirmDlg('Usun\u0105\u0107 cel "' + (c.cat || 'Ca\u0142y focus') + ' ' + c.minutes + ' min"?', function () {
+    S.focusGoals = focusGoals().filter(function (x) { return x.id !== id; });
+    save(); renderFocusGoals();
+  });
+}
+
+// =====================================================================
+//  OCENA MINIONEGO DNIA
+//  Pytamy RAZ, przy pierwszym otwarciu w nowym dniu, i tylko o dzien,
+//  w ktorym cokolwiek sie dzialo. Ocena bez kontekstu jest bezuzyteczna,
+//  wiec modal pokazuje obok fakty z tamtego dnia — punkty, trening, focus,
+//  sen — i dopiero na tym tle prosi o liczbe.
+// =====================================================================
+const DR_SKALA = [
+  { v:1, lbl:'S\u0142aby' }, { v:2, lbl:'Taki sobie' }, { v:3, lbl:'\u015Aredni' },
+  { v:4, lbl:'Dobry' }, { v:5, lbl:'\u015Awietny' }
+];
+let _drDzien = null;
+
+function dayReviews() { if (!S.dayReview) S.dayReview = {}; return S.dayReview; }
+
+function poprzedniDzien() {
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  return d.toDateString();
+}
+function dzienMialAktywnosc(dz) {
+  if ((S.dailyPts || {})[dz]) return true;
+  if ((S.workouts || []).some(function (w) { return w.day === dz; })) return true;
+  if ((S.focusSessions || []).some(function (s) { return s.day === dz; })) return true;
+  if ((S.habitDayLog || {})[dz]) return true;
+  return false;
+}
+
+function maybeAskDayReview() {
+  const dz = poprzedniDzien();
+  if (dayReviews()[dz]) return;          // juz oceniony albo pominiety
+  if (!dzienMialAktywnosc(dz)) return;   // pusty dzien nie ma czego oceniac
+  _drDzien = dz;
+  setTimeout(function () { openDayReview(dz); }, 900);
+}
+
+function openDayReview(dz) {
+  _drDzien = dz || poprzedniDzien();
+  const d = new Date(_drDzien);
+  const nazwa = ['niedziela','poniedzia\u0142ek','wtorek','\u015Broda','czwartek','pi\u0105tek','sobota'][d.getDay()];
+  document.getElementById('dayrev-title').textContent =
+    'JAK MIN\u0104\u0141 ' + (poprzedniDzien() === _drDzien ? 'WCZORAJSZY DZIE\u0143' : nazwa.toUpperCase()) + '?';
+
+  const fakty = [];
+  const pkt = (S.dailyPts || {})[_drDzien];
+  if (pkt) fakty.push(pkt + ' pkt');
+  const tren = (S.workouts || []).filter(function (w) { return w.day === _drDzien; });
+  if (tren.length) fakty.push(tren.map(function (w) { return w.planName || w.type; }).join(', '));
+  const fm = (S.focusSessions || []).filter(function (s) { return s.day === _drDzien; })
+                                    .reduce(function (a, s) { return a + (s.minutes || 0); }, 0);
+  if (fm) fakty.push(Math.floor(fm / 60) + 'h ' + (fm % 60) + 'm skupienia');
+  const sn = (S.sleepLog || {})[_drDzien];
+  if (sn && sn.hours) fakty.push(Math.floor(sn.hours) + 'h ' + Math.round((sn.hours % 1) * 60) + 'm snu');
+  document.getElementById('dayrev-facts').textContent =
+    d.getDate() + '.' + (d.getMonth() + 1) + ' \u00B7 ' + nazwa + (fakty.length ? ' \u00B7 ' + fakty.join(' \u00B7 ') : '');
+
+  const stary = dayReviews()[_drDzien];
+  renderDrScale(stary && stary.score ? stary.score : 3);
+  document.getElementById('dayrev-note').value = (stary && stary.note) || '';
+  openModal('dayrev-modal');
+}
+
+function renderDrScale(v) {
+  document.getElementById('dayrev-val').value = v;
+  document.getElementById('dayrev-scale').innerHTML = DR_SKALA.map(function (o) {
+    return '<div class="dr-opt ' + (o.v === v ? 'on' : '') + '" onclick="renderDrScale(' + o.v + ')">' +
+           '<div class="dr-num">' + o.v + '</div><div class="dr-lbl">' + o.lbl + '</div></div>';
+  }).join('');
+}
+
+function saveDayReview() {
+  const v = parseInt(document.getElementById('dayrev-val').value, 10) || 3;
+  dayReviews()[_drDzien] = { score: v, note: document.getElementById('dayrev-note').value.trim(), ts: Date.now() };
+  save(); closeModal('dayrev-modal'); showToast('Zapisane.');
+  if (typeof renderDayReviewStats === 'function') renderDayReviewStats();
+}
+function skipDayReview() {
+  // Pominiecie tez zapisujemy — inaczej pytanie wracaloby przy kazdym wejsciu.
+  dayReviews()[_drDzien] = { skipped: true, ts: Date.now() };
+  save(); closeModal('dayrev-modal');
+}
+
+// ── WYKRES OCEN DNIA ──
+function renderDayReviewStats() {
+  const wrap = document.getElementById('stats-dayrev'); if (!wrap) return;
+  if (!S.drRange) S.drRange = '30d';
+  const rev = dayReviews();
+  const ocena = function (d) { const e = rev[d]; return (e && !e.skipped && e.score) ? e.score : 0; };
+  const stamps = Object.keys(rev).map(function (x) { return new Date(x).getTime(); })
+                       .filter(function (t) { return !isNaN(t); });
+  const k = zakresKubelki(S.drRange, stamps.length ? Math.min.apply(null, stamps) : null);
+  const dni = k.kubelki.reduce(function (a, b) { return a.concat(b.dni); }, []);
+  const ocenione = dni.filter(function (d) { return ocena(d) > 0; });
+  const chipy = zakresChipy('dayrev', S.drRange, 'setDrRange', 'renderDayReviewStats');
+
+  if (!ocenione.length) {
+    wrap.innerHTML = chipy + '<div class="fg-sub">Brak ocen w tym okresie. Aplikacja zapyta o miniony dzie\u0144 przy pierwszym wej\u015Bciu.</div>';
+    return;
+  }
+  const sr = ocenione.reduce(function (a, d) { return a + ocena(d); }, 0) / ocenione.length;
+  const dobre = ocenione.filter(function (d) { return ocena(d) >= 4; }).length;
+  const dane = k.kubelki.map(function (b) {
+    const z = b.dni.filter(function (d) { return ocena(d) > 0; });
+    return z.length ? Math.round(z.reduce(function (a, d) { return a + ocena(d); }, 0) / z.length * 100) / 100 : 0;
+  });
+
+  wrap.innerHTML = chipy +
+    '<div class="trend-stats">' +
+      tCell((Math.round(sr * 10) / 10) + '/5', '\u015AREDNIA') +
+      tCell(dobre + '/' + ocenione.length, 'DNI 4 LUB 5') +
+      tCell(ocenione.length, 'OCENIONYCH') +
+    '</div>' +
+    '<canvas id="dayrev-chart" height="150"></canvas>' +
+    '<div class="trend-foot">' + zakresOpis(k) + ' \u00B7 dni bez oceny licza si\u0119 jako zero.</div>';
+
+  drawLine(document.getElementById('dayrev-chart'), k.kubelki.map(function (b) { return b.lbl; }),
+           dane, 'var(--accent3)', null, 150);
+}
+function setDrRange(id) { S.drRange = id; save(); renderDayReviewStats(); }
 
 function renderFocusCats() {
   const el=document.getElementById('focus-cats-list');
@@ -5561,6 +5913,7 @@ function renderStats() {
  
   renderReviewBtn();
   renderSleepStats();
+  renderDayReviewStats();
   renderWeekStrip();
   renderRepeat();
   renderExerciseVolume();
@@ -6186,6 +6539,7 @@ function init(){
   renderWorkout();
   renderFocus();
   maybeAskSleep();
+  maybeAskDayReview();
 }
 
 function resetAllData() {
