@@ -574,6 +574,13 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .ex-sub{font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .ex-sub b{color:var(--accent2);font-weight:600}
 .ex-sub .sep{opacity:.4}
+.diag{margin-top:10px;border-top:var(--px) solid var(--hair);padding-top:9px}
+.diag-row{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0}
+.diag-row span{color:var(--muted)}
+.diag-row b{font-weight:600}
+.diag-row b.ok{color:var(--accent2)}
+.diag-row b.zle{color:var(--accent4)}
+.diag-blad{margin-top:8px;font-size:12px;color:var(--accent4);background:var(--accent4-soft);border-radius:8px;padding:8px 10px;line-height:1.45;word-break:break-word}
 .notif-hint{margin-top:10px;padding:11px 12px;border-radius:var(--r-md);background:var(--accent3-soft);border:var(--px) solid rgba(255,61,154,.3);font-size:13px;line-height:1.55;color:var(--text)}
 /* ===================== CELE SKUPIENIA ===================== */
 .fg-item{border:var(--px) solid var(--hair);background:var(--card2);border-radius:var(--r-md);padding:11px 12px;margin-bottom:8px}
@@ -2513,21 +2520,73 @@ function askNotifPermission() {
 }
 
 // Jedno wejscie na wszystkie powiadomienia w apce.
+let _notifBlad = null;   // powod ostatniej nieudanej proby, do pokazania w apce
+
+// Ikona MUSI byc rastrowa: WebKit na iOS nie przyjmuje SVG w powiadomieniu
+// i po cichu odrzuca cale zgloszenie.
+const NOTIF_IKONA = 'icon-192.png';
+
 function notify(title, body, tag) {
-  if (!notifSupported() || Notification.permission !== 'granted') return false;
-  try {
-    const opts = { body: body || '', icon: 'life-rpg-icon.svg', badge: 'life-rpg-icon.svg',
-                   tag: tag || 'liferpg', renotify: false, silent: false };
-    // Przez service workera powiadomienie przezyje zminimalizowana karte;
-    // bez niego (np. po http w LAN) leci zwykla droga.
-    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-      navigator.serviceWorker.ready.then(function(reg) { reg.showNotification(title, opts); })
-        .catch(function() { new Notification(title, opts); });
-    } else {
-      new Notification(title, opts);
-    }
+  if (!notifSupported()) { _notifBlad = 'Przegl\u0105darka nie zna powiadomie\u0144.'; return false; }
+  if (Notification.permission !== 'granted') { _notifBlad = 'Brak zgody (' + Notification.permission + ').'; return false; }
+
+  const opts = { body: body || '', icon: NOTIF_IKONA, badge: NOTIF_IKONA,
+                 tag: tag || 'liferpg', renotify: true, silent: false };
+
+  // Na iOS powiadomienie moze isc WYLACZNIE przez service workera —
+  // konstruktor Notification tam nie dziala.
+  if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+    navigator.serviceWorker.ready
+      .then(function (reg) { return reg.showNotification(title, opts); })
+      .then(function () { _notifBlad = null; })
+      .catch(function (e) {
+        _notifBlad = 'showNotification: ' + (e && e.message ? e.message : e);
+        // Awaryjnie zwykla droga — na desktopie zadziala, na iOS nie,
+        // ale blad juz jest zapisany i widoczny w apce.
+        try { new Notification(title, opts); _notifBlad = null; } catch (e2) {}
+      });
     return true;
-  } catch (e) { return false; }
+  }
+  try { new Notification(title, opts); _notifBlad = null; return true; }
+  catch (e) { _notifBlad = 'Notification: ' + (e && e.message ? e.message : e); return false; }
+}
+
+// Prawdziwa proba wyslania, z raportem. Bez tego "nie dziala" nie da sie
+// zdiagnozowac na cudzym telefonie.
+function testujPowiadomienie() {
+  _notifBlad = null;
+  if (!notifSupported()) { showToast('Ta przegl\u0105darka nie zna powiadomie\u0144.'); renderNotifRow(); return; }
+  if (Notification.permission !== 'granted') { askNotifPermission(); return; }
+  if (!navigator.serviceWorker) { showToast('Brak service workera \u2014 otw\u00F3rz apk\u0119 z ikony.'); return; }
+
+  navigator.serviceWorker.ready
+    .then(function (reg) {
+      return reg.showNotification('LIFE RPG \u2014 test', {
+        body: 'Je\u015Bli to widzisz, powiadomienia dzia\u0142aj\u0105.',
+        icon: NOTIF_IKONA, badge: NOTIF_IKONA, tag: 'test', renotify: true
+      });
+    })
+    .then(function () { _notifBlad = null; showToast('Wys\u0142ane \u2014 sprawd\u017A ekran telefonu.'); renderNotifRow(); })
+    .catch(function (e) {
+      _notifBlad = (e && e.message) ? e.message : String(e);
+      showToast('Nie uda\u0142o si\u0119: ' + _notifBlad);
+      renderNotifRow();
+    });
+}
+
+// Co apka wie o swoim stanie — pokazywane w sekcji, zeby nie trzeba bylo
+// zgadywac, ktory warunek nie jest spelniony.
+function diagnozaPowiadomien() {
+  const w = [];
+  w.push(['Tryb', jestZainstalowana() ? 'z ekranu pocz\u0105tkowego' : 'w przegl\u0105darce', jestZainstalowana()]);
+  w.push(['Zgoda', notifSupported() ? Notification.permission : 'brak API', notifSupported() && Notification.permission === 'granted']);
+  w.push(['Service worker', _swGotowy ? 'aktywny' : 'brak', !!_swGotowy]);
+  w.push(['Bezpieczne po\u0142\u0105czenie', window.isSecureContext ? 'https' : 'http', !!window.isSecureContext]);
+  return w;
+}
+let _swGotowy = false;
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.ready.then(function () { _swGotowy = true; renderNotifRow(); }).catch(function () {});
 }
 
 // Czy apka chodzi jako zainstalowana (z ekranu poczatkowego), czy w karcie.
@@ -2567,6 +2626,11 @@ function renderNotifRow() {
       '</div>' +
       (m.btn ? '<button class="btn sm b2" style="margin-top:0" onclick="askNotifPermission()">' + m.btn + '</button>' : '') +
     '</div>' +
+    '<div class="diag">' + diagnozaPowiadomien().map(function (r) {
+      return '<div class="diag-row"><span>' + r[0] + '</span><b class="' + (r[2] ? 'ok' : 'zle') + '">' + r[1] + '</b></div>';
+    }).join('') + '</div>' +
+    (_notifBlad ? '<div class="diag-blad">Ostatni b\u0142\u0105d: ' + esc(_notifBlad) + '</div>' : '') +
+    '<button class="btn sm b3" style="margin-top:10px" onclick="testujPowiadomienie()">Wy\u015Blij testowe powiadomienie</button>' +
     (trzebaZainstalowac()
       ? '<div class="notif-hint">' +
           '<b>Na iPhonie najpierw zainstaluj aplikację.</b><br>' +
@@ -6397,7 +6461,7 @@ function daysSinceExport() {
 let _backupMsg = '';
 
 // Podstawiane przy publikacji — patrz publikuj.js.
-const APP_BUILD = '2026-09-06 16:44';
+const APP_BUILD = '2026-09-06 16:55';
 
 // Czy w tle czeka nowsza wersja? Service worker jest siec-najpierw, wiec
 // zwykle wystarczy ponowne otwarcie; ten przycisk jest dla sytuacji, gdy
