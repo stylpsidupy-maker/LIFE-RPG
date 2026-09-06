@@ -630,6 +630,8 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .exi{width:1.35em;height:1.35em;vertical-align:-.32em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .exi.big{width:26px;height:26px;vertical-align:middle}
 /* ===================== IKONY CWICZEN KONIEC ===================== */
+.wersja-stopka{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5}
+.wersja-stopka b{color:var(--accent2);font-weight:600}
 /* ===================== KOPIA DANYCH ===================== */
 .kopia-stan{display:flex;align-items:center;gap:11px;padding:12px;border-radius:var(--r-md);background:var(--accent2-soft);border:var(--px) solid rgba(61,225,255,.3)}
 .kopia-stan.zla{background:var(--accent4-soft);border-color:rgba(255,45,111,.35)}
@@ -6394,6 +6396,23 @@ function daysSinceExport() {
 // do #backup-msg znikalby przy nastepnym odswiezeniu.
 let _backupMsg = '';
 
+// Podstawiane przy publikacji — patrz publikuj.js.
+const APP_BUILD = '2026-09-06 16:44';
+
+// Czy w tle czeka nowsza wersja? Service worker jest siec-najpierw, wiec
+// zwykle wystarczy ponowne otwarcie; ten przycisk jest dla sytuacji, gdy
+// iOS trzyma apke uspiona i nie odswieza jej sam.
+function sprawdzAktualizacje() {
+  showToast('Sprawdzam...');
+  if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+    navigator.serviceWorker.getRegistration().then(function (reg) {
+      if (reg) reg.update();
+    }).catch(function () {});
+  }
+  // Antycache w adresie: bez niego przegladarka moze oddac swoja kopie.
+  setTimeout(function () { location.replace(location.pathname + '?v=' + Date.now()); }, 400);
+}
+
 function renderDataStatus() {
   const el = document.getElementById('data-status'); if (!el) return;
   const d = daysSinceExport();
@@ -6424,7 +6443,10 @@ function renderDataStatus() {
       'wi\u0119c r\u00F3b to tylko przy odzyskiwaniu.</div>' +
     (_persistState !== 'trwa\u0142e' && _persistState !== 'nieobs\u0142ugiwane'
       ? '<button class="kopia-link" onclick="requestPersistence()">Popro\u015B przegl\u0105dark\u0119, \u017Ceby nie kasowa\u0142a danych</button>' : '') +
-    '<button class="kopia-link zla" onclick="resetAllData()">Skasuj wszystkie dane z tego urz\u0105dzenia</button>';
+    '<button class="kopia-link zla" onclick="resetAllData()">Skasuj wszystkie dane z tego urz\u0105dzenia</button>' +
+    '<div class="wersja-stopka">Wersja <b>' + APP_BUILD + '</b>' +
+      (jestZainstalowana() ? ' \u00B7 zainstalowana' : ' \u00B7 w przegl\u0105darce') + '<br>' +
+      '<button class="kopia-link" style="margin-top:6px" onclick="sprawdzAktualizacje()">Sprawd\u017A aktualizacj\u0119</button></div>';
 }
 
 // Kopia oznacza sie jako zrobiona dopiero, gdy REALNIE wyszla z apki.
