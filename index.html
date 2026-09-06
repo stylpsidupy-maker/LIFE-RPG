@@ -574,6 +574,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .ex-sub{font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .ex-sub b{color:var(--accent2);font-weight:600}
 .ex-sub .sep{opacity:.4}
+.notif-hint{margin-top:10px;padding:11px 12px;border-radius:var(--r-md);background:var(--accent3-soft);border:var(--px) solid rgba(255,61,154,.3);font-size:13px;line-height:1.55;color:var(--text)}
 /* ===================== CELE SKUPIENIA ===================== */
 .fg-item{border:var(--px) solid var(--hair);background:var(--card2);border-radius:var(--r-md);padding:11px 12px;margin-bottom:8px}
 .fg-top{display:flex;align-items:baseline;gap:8px}
@@ -2527,6 +2528,24 @@ function notify(title, body, tag) {
   } catch (e) { return false; }
 }
 
+// Czy apka chodzi jako zainstalowana (z ekranu poczatkowego), czy w karcie.
+// Na iOS to rozroznienie decyduje o powiadomieniach, wiec musi byc widoczne
+// dla uzytkownika, a nie tylko dla kodu.
+function jestZainstalowana() {
+  if (window.navigator && window.navigator.standalone === true) return true;   // iOS
+  try { return window.matchMedia('(display-mode: standalone)').matches; } catch (e) { return false; }
+}
+function jestIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+// Podpowiedz o instalacji pokazujemy tam, gdzie faktycznie cos zmienia:
+// na iOS bez instalacji, albo gdy przegladarka w ogole nie zna powiadomien.
+function trzebaZainstalowac() {
+  if (jestZainstalowana()) return false;
+  return jestIOS() || !notifSupported();
+}
+
 function renderNotifRow() {
   const el = document.getElementById('notif-row'); if (!el) return;
   const st = notifState();
@@ -2534,7 +2553,7 @@ function renderNotifRow() {
     granted:     { txt: 'Włączone',                     cls: 'on',  btn: '' },
     denied:      { txt: 'Zablokowane w przeglądarce',   cls: '',    btn: '' },
     'default':   { txt: 'Wyłączone',                    cls: '',    btn: 'Włącz' },
-    unsupported: { txt: 'Nieobsługiwane w tej przeglądarce', cls: '', btn: '' }
+    unsupported: { txt: trzebaZainstalowac() ? 'Wymagają instalacji na pulpicie' : 'Nieobsługiwane w tej przeglądarce', cls: '', btn: '' }
   };
   const m = map[st] || map['default'];
   el.innerHTML =
@@ -2546,8 +2565,18 @@ function renderNotifRow() {
       '</div>' +
       (m.btn ? '<button class="btn sm b2" style="margin-top:0" onclick="askNotifPermission()">' + m.btn + '</button>' : '') +
     '</div>' +
+    (trzebaZainstalowac()
+      ? '<div class="notif-hint">' +
+          '<b>Na iPhonie najpierw zainstaluj aplikację.</b><br>' +
+          'W Safari: przycisk <b>Udostępnij</b> → <b>Dodaj do ekranu początkowego</b>. ' +
+          'Otwarta w karcie przeglądarki nie dostanie zgody na powiadomienia — iOS daje je tylko ' +
+          'aplikacjom z pulpitu. Potem wejdź tu z tej ikony i tapnij „Włącz”.' +
+        '</div>'
+      : '') +
     '<div style="font-size:13.8px;color:var(--muted);line-height:1.55;margin-top:10px">' +
-      'Działają, gdy apka jest otwarta lub w tle — koniec przerwy między seriami i koniec sesji focus. ' +
+      'Działają, gdy apka jest otwarta lub w tle — ostrzeżenie 15 s przed końcem i sam koniec ' +
+      'przerwy między seriami, sesji focus oraz serii na czas. ' +
+      'Niezależnie od zgody zawsze działa wibracja i sygnał dźwiękowy. ' +
       'Przypomnienie o stałej porze przy całkiem zamkniętej apce wymagałoby serwera push, więc tego nie ma.' +
     '</div>';
 }
