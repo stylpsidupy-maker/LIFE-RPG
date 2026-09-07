@@ -304,18 +304,6 @@ body{background:var(--bg);background-image:radial-gradient(125% 80% at 50% -10%,
 .sug-t{font-size:14.5px;font-weight:600;margin-bottom:3px;line-height:1.35}
 .sug-w{font-size:12.5px;color:var(--muted);line-height:1.45}
 .rev-h{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;font-weight:600;font-family:'Inter','Noto Emoji',sans-serif}
-/* ===================== ZLECENIA ===================== */
-.zl-sec{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:14px 0 7px;font-weight:600;font-family:'Inter','Noto Emoji',sans-serif}
-.zl-sec.late{color:var(--accent4)}
-.row.zl-late{border-color:rgba(255,45,111,.45)}
-.zl-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:999px;background:var(--card2);color:var(--muted);border:var(--px) solid var(--hair);white-space:nowrap}
-.zl-badge.late{background:var(--accent4-soft);color:var(--accent4);border-color:rgba(255,45,111,.4)}
-.zl-badge.wk{background:rgba(46,107,255,.16);color:var(--accent);border-color:rgba(46,107,255,.4)}
-.zl-more{font-size:13px;color:var(--muted);text-align:center;padding:11px;cursor:pointer;border:var(--px) dashed var(--hair);border-radius:var(--r-md);margin-top:8px}
-.zl-more b{color:var(--accent2);font-weight:600}
-.zl-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.zl-chip{padding:8px 12px;border-radius:999px;border:var(--px) solid var(--border);background:var(--card2);color:var(--muted);font-size:13px;cursor:pointer;line-height:1.2}
-.zl-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .zl-empty{font-size:13.5px;color:var(--muted);padding:10px 2px}
 /* ===================== KILOGRAMY NA CWICZENIE ===================== */
 #stats-exvol select{margin-bottom:12px}
@@ -565,6 +553,12 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .csw{width:34px;height:34px;border-radius:50%;cursor:pointer;border:var(--px) solid transparent;transition:all .14s}
 .csw.active{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--text)}
 
+.alarm-bar{position:fixed;left:10px;right:10px;bottom:calc(var(--navh) + 10px + env(safe-area-inset-bottom));z-index:200;display:none;align-items:center;gap:10px;padding:12px;border-radius:var(--r-md);background:rgba(13,17,32,.97);backdrop-filter:blur(14px);border:var(--px) solid var(--accent3);box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 26px rgba(255,61,154,.35)}
+.alarm-bar.on{display:flex;animation:alarmPuls 1s ease-in-out infinite}
+@keyframes alarmPuls{0%,100%{box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 26px rgba(255,61,154,.35)}50%{box-shadow:0 10px 30px rgba(0,0,0,.55),0 0 34px rgba(255,61,154,.7)}}
+.alarm-bar-left{flex:1;min-width:0}
+.alarm-bar-lbl{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--accent3);font-weight:600}
+.alarm-bar-txt{font-size:15px;font-weight:600;margin-top:2px}
 /* ===================== TOAST / XP ===================== */
 #toast{position:fixed;bottom:calc(var(--navh) + 18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:calc(100vw - 32px);background:var(--accent);color:#fff;font-family:'Inter','Noto Emoji',sans-serif;font-size:15.6px;font-weight:600;padding:12px 18px;border-radius:999px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 10px 30px rgba(46,107,255,.45),var(--glow)}
 #toast.show{opacity:1}
@@ -593,6 +587,9 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .fg-bar i{display:block;height:100%;border-radius:4px;background:var(--accent5);transition:width .3s}
 .fg-bar i.ok{background:var(--ok,var(--accent2))}
 .fg-sub{font-size:11.5px;color:var(--muted);margin-top:5px}
+.fg-item.past{opacity:.7}
+.fg-bar i.fail{background:var(--accent4)}
+.fg-tag{font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;font-weight:700;padding:2px 6px;border-radius:6px;background:var(--accent3-soft);color:var(--accent3);border:var(--px) solid rgba(255,61,154,.35);white-space:nowrap}
 /* ===================== OCENA DNIA ===================== */
 .dr-scale{display:flex;gap:6px;margin-top:6px}
 .dr-opt{flex:1;background:var(--card2);border:var(--px) solid var(--border);border-radius:10px;padding:11px 4px;text-align:center;cursor:pointer}
@@ -717,11 +714,8 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 
   <div class="section-title">✅ Na dziś</div>
   <div id="habits-list"></div>
-  <div id="tasks-today"></div>
-  <div id="zl-more"></div>
   <div class="btn-row">
     <button class="btn sm b2" onclick="openHabitModal()">+ Nawyk</button>
-    <button class="btn sm b3" onclick="openTaskModal()">+ Zlecenie</button>
   </div>
 
 
@@ -1043,25 +1037,6 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
   <button class="btn" onclick="closeModal('wsum-modal')">OK</button>
 </div></div>
 
-<!-- CEL -->
-<!-- ZADANIE -->
-<div class="overlay" id="task-modal">
-<div class="modal">
-  <button class="modal-close" onclick="closeModal('task-modal')">✕</button>
-  <div class="modal-title" id="task-modal-title">Nowe zlecenie</div>
-  <input type="hidden" id="task-edit-id">
-  <label style="margin-top:0">Co konkretnie zrobisz?</label>
-  <input id="task-name-inp" placeholder="np. Zapisać się na kurs">
-  <label>Termin</label>
-  <div class="meal-slot-row" id="task-due-row"></div>
-  <input type="date" id="task-due-date" onchange="renderTaskDue()" style="margin-top:8px">
-  <label style="display:flex;align-items:center;gap:8px;margin-top:16px;cursor:pointer">
-    <input type="checkbox" id="task-ba-inp" style="width:auto;margin:0">
-    <span>Pytaj o nastawienie przed i po</span>
-  </label>
-  <button class="btn" onclick="saveTask()">ZAPISZ ZLECENIE</button>
-</div></div>
-
 <!-- PRZEGLAD TYGODNIA -->
 <div class="overlay" id="review-modal">
 <div class="modal">
@@ -1070,13 +1045,6 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
   <div id="review-body"></div>
 </div></div>
 
-<!-- WSZYSTKIE ZLECENIA -->
-<div class="overlay" id="zl-all-modal">
-<div class="modal">
-  <button class="modal-close" onclick="closeModal('zl-all-modal')">&#10005;</button>
-  <div class="modal-title">WSZYSTKIE ZLECENIA</div>
-  <div id="zl-all-body"></div>
-</div></div>
 
 <!-- OCENA (BA) -->
 <div class="overlay" id="ba-modal">
@@ -1140,6 +1108,11 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
   <label>W jakim okresie</label>
   <div class="meal-slot-row" id="fgoal-period"></div>
   <input type="hidden" id="fgoal-period-val" value="week">
+  <div id="fgoal-date-row" style="display:none">
+    <label>Na który dzień</label>
+    <input type="date" id="fgoal-date">
+    <div class="fg-sub">Quest liczy się tylko tego dnia. Następnego zobaczysz wynik, potem zniknie sam.</div>
+  </div>
   <button class="btn" onclick="saveFocusGoal()">ZAPISZ CEL</button>
 </div></div>
 
@@ -1344,6 +1317,17 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 
 <div id="toast"></div>
 
+<!-- ALARM: koniec sesji/przerwy. Zostaje na ekranie, dopoki nie wyciszysz —
+     przy focusie nie patrzy sie w ekran, wiec komunikat, ktory znika po
+     dwoch sekundach, nie dociera do nikogo. -->
+<div id="alarm-bar" class="alarm-bar">
+  <div class="alarm-bar-left">
+    <div class="alarm-bar-lbl">Koniec</div>
+    <div class="alarm-bar-txt" id="alarm-bar-txt">Sesja skończona</div>
+  </div>
+  <button class="rest-bar-btn" onclick="stopAlarm()">WYŁĄCZ</button>
+</div>
+
 <div id="rest-bar" class="rest-bar">
   <div class="rest-bar-left">
     <div class="rest-bar-lbl">Przerwa</div>
@@ -1545,7 +1529,7 @@ function defaultState() {
     exTimer: null,
     // POMODORO: przerwa jest faza timera, nie presetem. Preset 5 min
     // ladowal do logu skupienia jako praca — czyli odpoczynek dawal punkty.
-    pomodoro: { work: 25, short: 5, long: 15, cycle: 4, auto: true },
+    pomodoro: { work: 25, short: 5, long: 15, cycle: 4 },
     pomoCount: 0,          // ukonczone sesje pracy dzisiaj
     pomoDay: null,
   };
@@ -1736,7 +1720,7 @@ function applyMigrations(parsed) {
   }
   if (parsed.focusTimer === undefined) parsed.focusTimer = null;
   if (parsed.exTimer === undefined) parsed.exTimer = null;
-  if (!parsed.pomodoro) parsed.pomodoro = { work: 25, short: 5, long: 15, cycle: 4, auto: true };
+  if (!parsed.pomodoro) parsed.pomodoro = { work: 25, short: 5, long: 15, cycle: 4 };
   if (parsed.pomoCount === undefined) parsed.pomoCount = 0;
   if (parsed.pomoDay === undefined) parsed.pomoDay = null;
 
@@ -2064,7 +2048,6 @@ function pickColor(el, key, color) {
 function renderToday() {
   updateTodayTiles();
   renderHabits();
-  renderTasksToday();
   renderPendingActions();
 }
 
@@ -2209,10 +2192,10 @@ function renderSleepTile() {
 }
 
 // =====================================================================
-//  CELE, ZADANIA I AKTYWACJA BEHAWIORALNA
-//  Zadanie to ta sama "zaplanowana czynnosc" co nawyk, tylko bez
-//  powtarzalnosci — dlatego siedzi na jednej liscie "Na dzis", a nie
-//  w osobnej zakladce. Ocena przed/po to warstwa dokladana na oba.
+//  ZOBOWIAZANIE TYGODNIA I AKTYWACJA BEHAWIORALNA
+//  Lista zadan na "dzis" znikla — nawyki wracaja same, a zlecenie trzeba
+//  bylo najpierw zalozyc, zeby potem je odhaczyc. Z calego mechanizmu
+//  zostalo jedno zobowiazanie na tydzien, obslugiwane w przegladzie tygodnia.
 // =====================================================================
 
 // Terminy porownujemy na POCZATKACH DNI, nie na znacznikach czasu — inaczej
@@ -2221,102 +2204,22 @@ function dayStart(x) { const d = new Date(x); return new Date(d.toDateString()).
 function todayStart() { return dayStart(new Date()); }
 function zlDue(t) { return t.due ? dayStart(t.due) : null; }
 function zlOverdue(t) { const d = zlDue(t); return !t.done && d !== null && d <  todayStart(); }
-function zlToday(t)   { const d = zlDue(t); return !t.done && d !== null && d === todayStart(); }
-function zlSoon(t, n) { const d = zlDue(t); const a = todayStart();
-                        return !t.done && d !== null && d > a && d <= a + (n || 7) * 86400000; }
-function zlBacklog(t) { return !t.done && zlDue(t) === null; }
-function zlLateDays(t) { return Math.round((todayStart() - zlDue(t)) / 86400000); }
-function zlAll() { return S.tasks || []; }
-
-function zlSourceBadge(t) {
-  return t.weekOf ? '<span class="zl-badge wk">★ tydzień</span>' : '';
-}
-
-function zlRow(t) {
-  const e = baEntry('task', t.id);
-  const started = !!(e && e.predP != null);
-  const late = zlOverdue(t);
-  // Zostaje tylko to, co niesie informacje: cel (jesli jest) i spoznienie.
-  // Plakietka obszaru znikla razem z wyborem obszaru.
-  return '<div class="row' + (late ? ' zl-late' : '') + '">' +
-    '<div class="chk" onclick="completeTask(' + t.id + ')">○</div>' +
-    '<div class="row-info">' +
-      '<div class="row-name">' + esc(t.name) + '</div>' +
-      '<div class="row-meta">' +
-        zlSourceBadge(t) +
-        (late ? '<span class="zl-badge late">' + zlLateDays(t) + ' dni po terminie</span>' : '') +
-        (started ? '<span class="hb-badge fire">w trakcie</span>' : '') +
-      '</div>' +
-    '</div>' +
-    ((t.ba && !started) ? '<button class="ba-start" onclick="event.stopPropagation();startBa(\'task\',' + t.id + ')">Zaczynam</button>' : '') +
-    '<button class="del-btn edit" onclick="event.stopPropagation();editTask(' + t.id + ')">✎</button>' +
-    '<button class="del-btn rm" onclick="event.stopPropagation();deleteTask(' + t.id + ')">✕</button>' +
-  '</div>';
-}
-
-// Na ekranie Dzis tylko to, co dotyczy dzisiaj. Reszta ma wlasny widok —
-// dolozenie tu backlogu zamienia "co dzis robie" w liste wszystkiego.
-function renderTasksToday() {
-  const el = document.getElementById('tasks-today'); if (!el) return;
-  const late = zlAll().filter(zlOverdue).sort(function (a, b) { return zlDue(a) - zlDue(b); });
-  const dzis = zlAll().filter(zlToday);
-  let h = '';
-  // Po terminie idzie NA GORE i na czerwono: to jedyny sygnal, ktory sam
-  // z siebie nie wroci — dzien mija, a zlecenie zostaje.
-  if (late.length) h += '<div class="zl-sec late">⚠ Po terminie (' + late.length + ')</div>' + late.map(zlRow).join('');
-  if (dzis.length) h += (late.length ? '<div class="zl-sec">Na dziś</div>' : '') + dzis.map(zlRow).join('');
-  el.innerHTML = h;
-  renderZlMore();
-}
-
-function renderZlMore() {
-  const el = document.getElementById('zl-more'); if (!el) return;
-  const soon = zlAll().filter(function (t) { return zlSoon(t, 7); }).length;
-  const back = zlAll().filter(zlBacklog).length;
-  if (!soon && !back) { el.innerHTML = ''; return; }
-  const cz = [];
-  if (soon) cz.push(soon + ' na najbliższe dni');
-  if (back) cz.push(back + ' bez terminu');
-  el.innerHTML = '<div class="zl-more" onclick="openZlAll()">' + cz.join(' · ') + ' — <b>pokaż wszystkie</b></div>';
-}
-
-function openZlAll() { openModal('zl-all-modal'); renderZlAll(); }
-
-function renderZlAll() {
-  const el = document.getElementById('zl-all-body'); if (!el) return;
-  const grupy = [
-    ['⚠ Po terminie', zlAll().filter(zlOverdue).sort(function (a, b) { return zlDue(a) - zlDue(b); })],
-    ['Na dziś',        zlAll().filter(zlToday)],
-    ['Najbliższe 7 dni', zlAll().filter(function (t) { return zlSoon(t, 7); }).sort(function (a, b) { return zlDue(a) - zlDue(b); })],
-    ['Później',        zlAll().filter(function (t) { return !t.done && zlDue(t) !== null && zlDue(t) > todayStart() + 7 * 86400000; }).sort(function (a, b) { return zlDue(a) - zlDue(b); })],
-    ['Bez terminu',     zlAll().filter(zlBacklog)]
-  ].filter(function (g) { return g[1].length; });
-
-  if (!grupy.length) { el.innerHTML = '<div class="zl-empty">Brak otwartych zleceń.</div>'; return; }
-  el.innerHTML = grupy.map(function (g) {
-    return '<div class="zl-sec' + (g[0].indexOf('terminie') > 0 ? ' late' : '') + '">' + g[0] + ' (' + g[1].length + ')</div>' +
-           g[1].map(zlRow).join('');
-  }).join('');
-}
-
 function completeTask(id) {
   const t = (S.tasks || []).find(function (x) { return x.id === id; }); if (!t) return;
   t.done = true; t.doneAt = Date.now();
-  // Punkty ida z wysilku wpisanego przy zakladaniu zlecenia, a nie ze stalej
-  // dziesiatki: inaczej "wynies smieci" i "zaloz konto w banku" waza tyle samo.
-  queuePts(t.effort || 10, 'Zlecenie: ' + t.name, false);
+  queuePts(t.effort || 10, 'Zobowiązanie: ' + t.name, false);
   save();
-  if (t.ba) askBa('task', id, 'after', t.name);
-  renderTasksToday(); renderPendingActions(); updateTodayTiles();
-  if (document.getElementById('zl-all-modal').classList.contains('open')) renderZlAll();
+  renderPendingActions(); updateTodayTiles();
+  if (document.getElementById('review-modal').classList.contains('open')) renderWeekReview();
   showToast('Zrobione: ' + t.name + ' +' + (t.effort || 10));
 }
 
 function deleteTask(id) {
   const t = (S.tasks||[]).find(x => x.id === id); if (!t) return;
-  confirmDlg('Usunąć zadanie "' + t.name + '"?', function() {
+  confirmDlg('Usunąć zobowiązanie "' + t.name + '"?', function() {
     S.tasks = S.tasks.filter(x => x.id !== id);
-    save(); renderTasksToday();
+    save();
+    if (document.getElementById('review-modal').classList.contains('open')) renderWeekReview();
   });
 }
 
@@ -2379,7 +2282,7 @@ function saveBa() {
     }
   }
   closeModal('ba-modal');
-  renderTasksToday(); renderHabits(); renderBaGap();
+  renderHabits(); renderBaGap();
 }
 
 // ── MODALE CELU I ZADANIA ──
@@ -2419,24 +2322,8 @@ function baGapStats(limit) {
 }
 
 // ── TERMIN ZLECENIA ──
-const TASK_DUE_OPTS = [
-  { id: 'today',    lbl: 'Dziś' },
-  { id: 'tomorrow', lbl: 'Jutro' },
-  { id: 'week',     lbl: 'W tygodniu' },
-  { id: 'none',     lbl: 'Bez terminu' }
-];
-function dueToDate(optId) {
-  const d = new Date();
-  if (optId === 'tomorrow') d.setDate(d.getDate() + 1);
-  else if (optId === 'week') d.setDate(d.getDate() + 7);
-  else if (optId === 'none') return null;
-  return d.toDateString();
-}
-
-// Data trzymana jest w polu <input type="date">, a nie w id skrotu.
-// Wczesniej modal pamietal tylko "dzis/jutro/w tygodniu", wiec kazda edycja
-// zlecenia na przyszly piatek przestawiala mu termin z powrotem na dzis.
-// Skroty teraz tylko WYPELNIAJA to pole; zrodlem prawdy jest data.
+// Zamiana miedzy dniem w formacie toDateString a wartoscia <input type="date">.
+// Uzywane wszedzie, gdzie formularz ma pole daty.
 function toDateInput(dayStr) {
   if (!dayStr) return '';
   const d = new Date(dayStr); if (isNaN(d.getTime())) return '';
@@ -2449,54 +2336,6 @@ function fromDateInput(v) {
   // dzien wczesniej wieczorem, i termin przeskakiwal o dobe.
   return new Date(+p[0], +p[1] - 1, +p[2]).toDateString();
 }
-function renderTaskDue(preset) {
-  const el = document.getElementById('task-due-row'); if (!el) return;
-  const inp = document.getElementById('task-due-date');
-  if (preset !== undefined && preset !== null) inp.value = toDateInput(dueToDate(preset));
-  const cur = inp.value;
-  el.innerHTML = TASK_DUE_OPTS.map(function (o) {
-    return '<div class="meal-slot ' + (toDateInput(dueToDate(o.id)) === cur ? 'on' : '') +
-           '" onclick="pickTaskDue(\'' + o.id + '\')">' + o.lbl + '</div>';
-  }).join('');
-}
-function pickTaskDue(id) { renderTaskDue(id); }
-
-function openTaskModal(goalId) {
-  document.getElementById('task-edit-id').value = '';
-  document.getElementById('task-modal-title').textContent = 'Nowe zlecenie';
-  document.getElementById('task-name-inp').value = '';
-  document.getElementById('task-ba-inp').checked = false;
-  renderTaskDue('today');
-  openModal('task-modal');
-}
-function editTask(id) {
-  const t = (S.tasks||[]).find(function (x) { return x.id === id; }); if (!t) return;
-  document.getElementById('task-edit-id').value = id;
-  document.getElementById('task-modal-title').textContent = 'Edytuj zlecenie';
-  document.getElementById('task-name-inp').value = t.name || '';
-  document.getElementById('task-ba-inp').checked = !!t.ba;
-  // Termin z rekordu, nie z presetu — o to sie rozbijala poprzednia wersja.
-  document.getElementById('task-due-date').value = toDateInput(t.due);
-  renderTaskDue();
-  openModal('task-modal');
-}
-function saveTask() {
-  const name = document.getElementById('task-name-inp').value.trim(); if (!name) return;
-  const id = document.getElementById('task-edit-id').value;
-  const obj = {
-    name: name,
-    due: fromDateInput(document.getElementById('task-due-date').value),
-    ba: document.getElementById('task-ba-inp').checked
-  };
-  // obj celowo nie zawiera weekOf — Object.assign zachowuje wiec oznaczenie
-  // zlecenia tygodnia przy zwyklej edycji.
-  if (id) { Object.assign((S.tasks||[]).find(function (x) { return x.id === parseInt(id); }) || {}, obj); }
-  else { S.tasks.push(Object.assign({ id: Date.now(), done: false, doneAt: null, createdAt: Date.now(), effort: 10 }, obj)); }
-  save(); closeModal('task-modal'); renderTasksToday();
-  if (document.getElementById('zl-all-modal').classList.contains('open')) renderZlAll();
-  showToast('Zlecenie zapisane');
-}
-
 // =====================================================================
 //  POWIADOMIENIA
 //  Zakres jest ograniczony przez przegladarke i warto o tym wiedziec:
@@ -3634,20 +3473,78 @@ function skipRest() {
   if (bar) { bar.classList.remove('on'); bar.classList.remove('done'); bar.classList.remove('warn'); }
 }
 
+// Jeden wspolny kontekst dzwieku, odblokowany pierwszym dotknieciem ekranu.
+// Przegladarka na telefonie nie pozwala zagrac "z niczego": kontekst tworzony
+// dopiero w chwili alarmu potrafi wstac uspiony i nie zagrac w ogole.
+let _audio = null;
+function audioCtx() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return null;
+    if (!_audio) _audio = new Ctx();
+    if (_audio.state === 'suspended') _audio.resume();
+    return _audio;
+  } catch (e) { return null; }
+}
+function odblokujDzwiek() {
+  const c = audioCtx(); if (!c) return;
+  try {
+    const o = c.createOscillator(), g = c.createGain();
+    g.gain.value = 0.0001; o.connect(g); g.connect(c.destination);
+    o.start(); o.stop(c.currentTime + 0.02);
+  } catch (e) {}
+  document.removeEventListener('pointerdown', odblokujDzwiek);
+}
+document.addEventListener('pointerdown', odblokujDzwiek);
+
+function pisk(hz, opoznienie, dlugosc, glosnosc) {
+  const c = audioCtx(); if (!c) return null;
+  const t0 = c.currentTime + (opoznienie || 0);
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = 'sine'; o.frequency.value = hz; o.connect(g); g.connect(c.destination);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(glosnosc || 0.125, t0 + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dlugosc);
+  o.start(t0); o.stop(t0 + dlugosc + 0.02);
+  return o;
+}
+
+// ── ALARM KONCA FAZY ──
+// Powtarzana seria, a nie jedno pikniecie: jesli telefon lezy ekranem w dol
+// obok, jedno "pip" przepada. Wycisza sie przyciskiem albo samo po ~16 s.
+let _alarmTo = [], _alarmOsc = [];
+
+function stopAlarm() {
+  _alarmTo.forEach(clearTimeout); _alarmTo = [];
+  _alarmOsc.forEach(function (o) { try { o.stop(); } catch (e) {} }); _alarmOsc = [];
+  const b = document.getElementById('alarm-bar'); if (b) b.classList.remove('on');
+}
+
+function alarmFokus(tytul, tresc, serie) {
+  stopAlarm();
+  notify(tytul, tresc, 'focus-alarm');
+  const bar = document.getElementById('alarm-bar');
+  if (bar) {
+    const txt = document.getElementById('alarm-bar-txt');
+    if (txt) txt.textContent = tytul + ' \u2014 ' + tresc;
+    bar.classList.add('on');
+  }
+  const ile = serie || 5;
+  for (let s = 0; s < ile; s++) {
+    _alarmTo.push(setTimeout(function () {
+      try { if (navigator.vibrate) navigator.vibrate([400, 130, 400, 130, 650]); } catch (e) {}
+      [pisk(880, 0, 0.35), pisk(1046, 0.45, 0.35), pisk(1318, 0.9, 0.5)]
+        .forEach(function (o) { if (o) _alarmOsc.push(o); });
+    }, s * 3000));
+  }
+  _alarmTo.push(setTimeout(stopAlarm, ile * 3000 + 1500));
+}
+
 // Dźwięk generowany przez WebAudio — bez pliku, działa offline.
 function restAlert() {
   try { if (navigator.vibrate) navigator.vibrate([200,80,200]); } catch(e){}
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return;
-    const ctx = new Ctx(); const o = ctx.createOscillator(); const g = ctx.createGain();
-    o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination);
-    g.gain.setValueAtTime(0.0001, ctx.currentTime);
-    // Glosnosc scisniete o polowe (0.25 -> 0.125) — sygnal ma przypomniec,
-    // a nie wystraszyc na silowni ze sluchawkami.
-    g.gain.exponentialRampToValueAtTime(0.125, ctx.currentTime+0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.6);
-    o.start(); o.stop(ctx.currentTime+0.62);
-  } catch(e){}
+  // Glosnosc scisnieta o polowe (0.25 -> 0.125) — sygnal ma przypomniec,
+  // a nie wystraszyc na silowni ze sluchawkami.
+  pisk(880, 0, 0.6, 0.125);
   notify('Koniec przerwy', 'Wracaj do sztangi.', 'rest');
   showToast('⏰ Koniec przerwy!');
 }
@@ -4688,7 +4585,7 @@ function renderFocus() { renderFocusTimer(); renderFocusGoals(); renderFocusCats
 let focusIv = null;
 
 function pomo() {
-  if (!S.pomodoro) S.pomodoro = { work: 25, short: 5, long: 15, cycle: 4, auto: true };
+  if (!S.pomodoro) S.pomodoro = { work: 25, short: 5, long: 15, cycle: 4 };
   if (!S.pomodoro.work) S.pomodoro.work = 25;
   return S.pomodoro;
 }
@@ -4720,7 +4617,10 @@ function adjWork(d) {
 }
 function adjBreak(d) {
   if (onBreak()) { showToast('Najpierw zatrzymaj przerwę.'); return; }
-  pomo().short = Math.max(1, Math.min(60, (pomo().short || 5) + d));
+  const k = nextBreakKind();
+  const p = pomo();
+  if (k === 'long') p.long = Math.max(1, Math.min(90, (p.long || 15) + d));
+  else              p.short = Math.max(1, Math.min(60, (p.short || 5) + d));
   save(); renderFocusTimer();
 }
 function askWorkMin() {
@@ -4734,11 +4634,15 @@ function askWorkMin() {
 }
 function askBreakMin() {
   if (onBreak()) { showToast('Najpierw zatrzymaj przerwę.'); return; }
-  promptDlg({ title: 'Długość przerwy', label: 'Ile minut? (1–60)', value: pomo().short, min: 1, max: 60, ok: 'USTAW' },
+  const k = nextBreakKind();
+  promptDlg({ title: (k === 'long' ? 'Długość długiej przerwy' : 'Długość przerwy'),
+              label: 'Ile minut? (1–90)', value: breakMinutes(k), min: 1, max: 90, ok: 'USTAW' },
     function (v) {
       const n = parseInt(v, 10);
       if (isNaN(n) || n < 1) { showToast('Podaj liczbę minut.'); return; }
-      pomo().short = Math.max(1, Math.min(60, n)); save(); renderFocusTimer();
+      if (k === 'long') pomo().long = Math.max(1, Math.min(90, n));
+      else              pomo().short = Math.max(1, Math.min(60, n));
+      save(); renderFocusTimer();
     });
 }
 // ── cykl ──
@@ -4787,7 +4691,7 @@ function toggleBreak() {
   const t = S.focusTimer;
   if (onBreak() && focusRunning()) { t.pausedAt = Date.now(); save(); stopFocusInterval(); renderFocusTimer(); return; }
   if (onBreak() && focusPaused())  { resumeTimer(); return; }
-  startBreak('short');
+  startBreak(nextBreakKind());
 }
 
 function resumeTimer() {
@@ -4875,11 +4779,23 @@ function focusTick() {
   if (!t || t.pausedAt) return;
   const left = focusSecondsLeft();
   renderFocusClocks();
+  // MINUTA PRZED KONCEM. To jest wlasciwe ostrzezenie przy focusie: 15 sekund
+  // wystarczy tylko na urwanie zdania w polowie, minuta na domkniecie mysli.
+  if (t.kind === 'down' && left > 0 && left <= 60 && !t.ostrz60 && (t.planMin || 0) > 2) {
+    t.ostrz60 = true; save();
+    try { if (navigator.vibrate) navigator.vibrate([130, 90, 130]); } catch(e){}
+    notify(t.mode === 'break' ? 'Minuta do ko\u0144ca przerwy' : 'Minuta do ko\u0144ca sesji',
+           'Zosta\u0142a minuta \u2014 domykaj.', 'focus-warn');
+  }
+  // Drugie ostrzeżenie tylko wtedy, gdy pierwsze nie poszlo (krotka sesja,
+  // przerwa). Dwa powiadomienia w 45 sekund to juz halas, nie sygnal.
   if (t.kind === 'down' && left > 0 && left <= OSTRZEZENIE_S && !t.ostrzezone) {
     t.ostrzezone = true; save();
     try { if (navigator.vibrate) navigator.vibrate(90); } catch(e){}
-    notify(t.mode === 'break' ? 'Przerwa ko\u0144czy si\u0119' : 'Sesja ko\u0144czy si\u0119',
-           'Zosta\u0142o ' + left + ' s.', 'focus-warn');
+    if (!t.ostrz60) {
+      notify(t.mode === 'break' ? 'Przerwa ko\u0144czy si\u0119' : 'Sesja ko\u0144czy si\u0119',
+             'Zosta\u0142o ' + left + ' s.', 'focus-warn');
+    }
   }
   const czasEl = document.getElementById(t.mode === 'break' ? 'break-time' : 'work-time');
   if (czasEl) czasEl.classList.toggle('warn', t.kind === 'down' && left > 0 && left <= OSTRZEZENIE_S);
@@ -4900,9 +4816,9 @@ function finishFocusPhase(cichy) {
     const mb = Math.max(1, Math.round(t.planMin || focusElapsedMin()));
     S.focusTimer = null; save();
     logBreak(mb, t.breakKind);
-    if (!cichy) notify('Przerwa skończona', 'Wracamy do roboty.', 'focus');
     showToast((dluga ? 'Długa przerwa' : 'Przerwa') + ' skończona ✓');
     renderFocusTimer();
+    if (!cichy) alarmFokus('Koniec przerwy', 'Wracamy do roboty.', 2);
     return;
   }
 
@@ -4911,15 +4827,13 @@ function finishFocusPhase(cichy) {
   logFocusSession(mins);
   pomoRollDay();
   S.pomoCount = (S.pomoCount || 0) + 1; save();
-  if (!cichy) notify('Sesja focus skończona', mins + ' min zaliczone.', 'focus');
   showToast('Sesja zakończona: ' + mins + ' min ✓');
-
-  if (cichy) { renderFocusTimer(); return; }
-  const bk = nextBreakKind();
-  if (pomo().auto) { startBreak(bk); return; }
   renderFocusTimer();
-  confirmDlg('Odpalić ' + (bk === 'long' ? 'długą przerwę' : 'przerwę') + ' ' + breakMinutes(bk) + ' min?',
-             function () { startBreak(bk); }, 'START');
+  if (cichy) return;
+  // Przerwa NIE startuje sama i nie pyta okienkiem. Sesja konczy sie w chwili,
+  // w ktorej czlowieka nie ma przy telefonie — automat zjadalby z przerwy tyle,
+  // ile trwa powrot do biurka. Prawy licznik czeka gotowy, wystarczy Start.
+  alarmFokus('Koniec sesji focus', mins + ' min zaliczone. Przerw\u0119 odpalasz sam.', 5);
 }
 
 // ── render ──
@@ -4929,7 +4843,7 @@ function renderFocusClocks() {
   const w = document.getElementById('work-time'), b = document.getElementById('break-time');
   if (!w || !b) return;
   w.textContent = onWork()  ? fmt(focusSecondsLeft()) : (_stopwatch ? '00:00' : fmt(pomo().work * 60));
-  b.textContent = onBreak() ? fmt(focusSecondsLeft()) : fmt((pomo().short || 5) * 60);
+  b.textContent = onBreak() ? fmt(focusSecondsLeft()) : fmt(breakMinutes(nextBreakKind()) * 60);
 }
 
 function renderFocusTimer() {
@@ -4946,7 +4860,8 @@ function renderFocusTimer() {
   document.getElementById('work-lbl').textContent =
     onWork() ? (focusPaused() ? 'Wstrzymana' : catName) : (_stopwatch ? 'Sesja — bez limitu' : 'Sesja');
   document.getElementById('break-lbl').textContent =
-    onBreak() ? (focusPaused() ? 'Wstrzymana' : (S.focusTimer.breakKind === 'long' ? 'Długa przerwa' : 'Przerwa')) : 'Przerwa';
+    onBreak() ? (focusPaused() ? 'Wstrzymana' : (S.focusTimer.breakKind === 'long' ? 'Długa przerwa' : 'Przerwa'))
+              : (nextBreakKind() === 'long' ? 'Długa przerwa' : 'Przerwa');
 
   const wb = document.getElementById('work-btn');
   wb.textContent = (onWork() && focusRunning()) ? '⏸ Pauza' : (onWork() && focusPaused()) ? '▶ Wznów' : '▶ Start';
@@ -4976,7 +4891,7 @@ function renderFocusTimer() {
   bs.disabled = !onBreak();
 
   document.getElementById('work-min').textContent = pomo().work;
-  document.getElementById('break-min').textContent = pomo().short || 5;
+  document.getElementById('break-min').textContent = breakMinutes(nextBreakKind());
   ['work-minus','work-plus'].forEach(function (id) { document.getElementById(id).disabled = onWork() || _stopwatch; });
   ['break-minus','break-plus'].forEach(function (id) { document.getElementById(id).disabled = onBreak(); });
 
@@ -5039,12 +4954,30 @@ function logFocusSession(minutes) {
 //  losowanie z puli — to ta sama zasada, co przy zleceniach tygodnia.
 //  Kategoria jest opcjonalna: bez niej cel liczy caly focus razem.
 // =====================================================================
-const FG_OKRESY = [{ id:'day', lbl:'Dziennie' }, { id:'week', lbl:'Tygodniowo' }];
+const FG_OKRESY = [{ id:'once', lbl:'Quest (1 dzie\u0144)' }, { id:'day', lbl:'Dziennie' }, { id:'week', lbl:'Tygodniowo' }];
+
+// Dni, ktore wchodza do celu. Quest ma jeden konkretny dzien, reszta liczy
+// sie z kalendarza.
+function fgDni(cel) {
+  if (cel.period === 'once') return [cel.date || new Date().toDateString()];
+  if (cel.period === 'day')  return [new Date().toDateString()];
+  return weekDaysBack(0);
+}
+function fgQuest(cel) { return cel.period === 'once'; }
+// Ile dni temu wypada quest: 0 = dzis, ujemne = jeszcze przed nami.
+function fgIleDniTemu(cel) {
+  if (!fgQuest(cel)) return 0;
+  return Math.round((todayStart() - dayStart(cel.date || new Date())) / 86400000);
+}
+function fgDataKrotko(d) {
+  try { return new Date(d).toLocaleDateString('pl', { day: 'numeric', month: 'short' }); }
+  catch (e) { return ''; }
+}
 
 function focusGoals() { if (!S.focusGoals) S.focusGoals = []; return S.focusGoals; }
 
 function fgMinuty(cel) {
-  const dni = cel.period === 'day' ? [new Date().toDateString()] : weekDaysBack(0);
+  const dni = fgDni(cel);
   return bezPrzerw(S.focusSessions).filter(function (s) {
     return dni.indexOf(s.day) >= 0 && (!cel.cat || s.cat === cel.cat);
   }).reduce(function (a, s) { return a + (s.minutes || 0); }, 0);
@@ -5052,24 +4985,48 @@ function fgMinuty(cel) {
 
 function renderFocusGoals() {
   const el = document.getElementById('focus-goals'); if (!el) return;
+
+  // Questy starsze niz wczoraj sprzatamy same. Wynik jest do obejrzenia przez
+  // jeden dzien; trzymanie ich dluzej zamienia liste celow w archiwum.
+  const przed = focusGoals().length;
+  S.focusGoals = focusGoals().filter(function (c) { return !fgQuest(c) || fgIleDniTemu(c) <= 1; });
+  if (S.focusGoals.length !== przed) save();
+
   const cele = focusGoals();
   if (!cele.length) {
-    el.innerHTML = '<div class="fg-sub">Brak cel\u00F3w. Postaw sobie wyzwanie \u2014 np. 45 minut nauki twardej tygodniowo.</div>';
+    el.innerHTML = '<div class="fg-sub">Brak cel\u00F3w. Postaw sobie sta\u0142e wyzwanie (np. 45 min nauki dziennie) albo jednorazowy quest na konkretny dzie\u0144.</div>';
     return;
   }
   el.innerHTML = cele.map(function (c) {
     const masz = fgMinuty(c);
     const pct = Math.min(100, Math.round(masz / c.minutes * 100));
     const zrobione = masz >= c.minutes;
-    const okres = c.period === 'day' ? 'dzi\u015B' : 'w tym tygodniu';
-    return '<div class="fg-item">' +
-      '<div class="fg-top"><span class="fg-name">' + (zrobione ? '\u2713 ' : '') + esc(c.cat || 'Ca\u0142y focus') + '</span>' +
-        '<span class="fg-val" style="color:' + (zrobione ? 'var(--accent2)' : 'var(--accent5)') + '">' +
-        masz + ' / ' + c.minutes + ' min</span>' +
+    const dniTemu = fgIleDniTemu(c);
+    const minelo = fgQuest(c) && dniTemu > 0;          // quest juz rozliczony
+    const przyszly = fgQuest(c) && dniTemu < 0;        // quest jeszcze przed nami
+
+    let okres;
+    if (!fgQuest(c)) okres = (c.period === 'day' ? 'dzi\u015B' : 'w tym tygodniu');
+    else if (minelo)  okres = fgDataKrotko(c.date);
+    else if (przyszly) okres = 'zaplanowany na ' + fgDataKrotko(c.date);
+    else okres = 'dzi\u015B';
+
+    const ogon = minelo ? (zrobione ? 'quest zaliczony' : 'nie uda\u0142o si\u0119 \u2014 zabrak\u0142o ' + (c.minutes - masz) + ' min')
+               : przyszly ? 'jeszcze nie wystartowa\u0142'
+               : (zrobione ? 'cel osi\u0105gni\u0119ty' : 'zosta\u0142o ' + (c.minutes - masz) + ' min');
+
+    const znak = zrobione ? '\u2713 ' : (minelo ? '\u2715 ' : '');
+    const kolor = zrobione ? 'var(--accent2)' : (minelo ? 'var(--accent4)' : 'var(--accent5)');
+
+    return '<div class="fg-item' + (minelo ? ' past' : '') + '">' +
+      '<div class="fg-top">' +
+        (fgQuest(c) ? '<span class="fg-tag">quest</span>' : '') +
+        '<span class="fg-name">' + znak + esc(c.cat || 'Ca\u0142y focus') + '</span>' +
+        '<span class="fg-val" style="color:' + kolor + '">' + masz + ' / ' + c.minutes + ' min</span>' +
         '<button class="del-btn edit" onclick="editFocusGoal(' + c.id + ')">\u270E</button>' +
         '<button class="del-btn rm" onclick="deleteFocusGoal(' + c.id + ')">\u2715</button></div>' +
-      '<div class="fg-bar"><i class="' + (zrobione ? 'ok' : '') + '" style="width:' + pct + '%"></i></div>' +
-      '<div class="fg-sub">' + okres + ' \u00B7 ' + (zrobione ? 'cel osi\u0105gni\u0119ty' : 'zosta\u0142o ' + (c.minutes - masz) + ' min') + '</div>' +
+      '<div class="fg-bar"><i class="' + (zrobione ? 'ok' : (minelo ? 'fail' : '')) + '" style="width:' + pct + '%"></i></div>' +
+      '<div class="fg-sub">' + okres + ' \u00B7 ' + ogon + '</div>' +
     '</div>';
   }).join('');
 }
@@ -5079,6 +5036,12 @@ function renderFgPeriod(p) {
   document.getElementById('fgoal-period').innerHTML = FG_OKRESY.map(function (o) {
     return '<div class="meal-slot ' + (o.id === p ? 'on' : '') + '" onclick="renderFgPeriod(\'' + o.id + '\')">' + o.lbl + '</div>';
   }).join('');
+  // Data ma sens tylko dla questa. Puste pole uzupelniamy dzisiejsza data,
+  // zeby zapis bez dotkniecia kalendarza dawal to, czego sie spodziewasz.
+  const row = document.getElementById('fgoal-date-row');
+  const inp = document.getElementById('fgoal-date');
+  if (row) row.style.display = (p === 'once') ? '' : 'none';
+  if (p === 'once' && inp && !inp.value) inp.value = toDateInput(new Date().toDateString());
 }
 function fillFgCat(sel) {
   document.getElementById('fgoal-cat').innerHTML =
@@ -5091,6 +5054,7 @@ function openFocusGoalModal() {
   document.getElementById('fgoal-edit-id').value = '';
   document.getElementById('fgoal-title').textContent = 'NOWY CEL SKUPIENIA';
   document.getElementById('fgoal-min').value = 45;
+  document.getElementById('fgoal-date').value = toDateInput(new Date().toDateString());
   fillFgCat(''); renderFgPeriod('week');
   openModal('fgoal-modal');
 }
@@ -5099,6 +5063,9 @@ function editFocusGoal(id) {
   document.getElementById('fgoal-edit-id').value = id;
   document.getElementById('fgoal-title').textContent = 'EDYTUJ CEL';
   document.getElementById('fgoal-min').value = c.minutes;
+  // Pole daty wypelniamy PRZED renderFgPeriod — inaczej podstawi dzisiejsza
+  // date i edycja questa przestawialaby go na dzis.
+  document.getElementById('fgoal-date').value = toDateInput(c.date || new Date().toDateString());
   fillFgCat(c.cat || ''); renderFgPeriod(c.period || 'week');
   openModal('fgoal-modal');
 }
@@ -5106,15 +5073,19 @@ function saveFocusGoal() {
   const min = parseInt(document.getElementById('fgoal-min').value, 10);
   if (isNaN(min) || min < 1) { showToast('Podaj liczb\u0119 minut.'); return; }
   const id = document.getElementById('fgoal-edit-id').value;
+  const okres = document.getElementById('fgoal-period-val').value;
   const obj = { cat: document.getElementById('fgoal-cat').value || null,
-                minutes: min, period: document.getElementById('fgoal-period-val').value };
+                minutes: min, period: okres,
+                date: okres === 'once'
+                  ? (fromDateInput(document.getElementById('fgoal-date').value) || new Date().toDateString())
+                  : null };
   if (id) { Object.assign(focusGoals().find(function (x) { return x.id === parseInt(id, 10); }) || {}, obj); }
   else { focusGoals().push(Object.assign({ id: Date.now() }, obj)); }
   save(); closeModal('fgoal-modal'); renderFocusGoals(); showToast('Cel zapisany.');
 }
 function deleteFocusGoal(id) {
   const c = focusGoals().find(function (x) { return x.id === id; }); if (!c) return;
-  confirmDlg('Usun\u0105\u0107 cel "' + (c.cat || 'Ca\u0142y focus') + ' ' + c.minutes + ' min"?', function () {
+  confirmDlg('Usun\u0105\u0107 ' + (fgQuest(c) ? 'quest' : 'cel') + ' "' + (c.cat || 'Ca\u0142y focus') + ' ' + c.minutes + ' min"?', function () {
     S.focusGoals = focusGoals().filter(function (x) { return x.id !== id; });
     save(); renderFocusGoals();
   });
@@ -5587,10 +5558,7 @@ const WEEK_METRICS = [
     week:function(d){ if(!(S.supplements||[]).length) return 0;
       // suppAllTakenOnDay na pustej liscie zwraca true (every) — stad straznik
       // wyzej, inaczej brak suplementow wygladalby na komplet 7/7.
-      return d.filter(function(x){ return suppAllTakenOnDay(x); }).length; } },
-  { id:'zlecenia', name:'Zamknięte zlecenia', unit:'szt', area:'ja', target:3,
-    week:function(d){ return (S.tasks||[]).filter(function(t){
-      return t.done && t.doneAt && d.indexOf(new Date(t.doneAt).toDateString())>=0; }).length; } }
+      return d.filter(function(x){ return suppAllTakenOnDay(x); }).length; } }
 ];
 
 function metricById(id){ return WEEK_METRICS.find(function(m){ return m.id===id; }) || WEEK_METRICS[0]; }
@@ -5603,8 +5571,7 @@ const METRIC_PHRASE = {
   focus:    function(n){ return n+' h skupienia'; },
   nawyki:   function(n){ return 'komplet nawyków przez '+n+' dni'; },
   bialko:   function(n){ return 'cel białka w '+n+' dniach'; },
-  suple:    function(n){ return 'suplementy przez '+n+' dni'; },
-  zlecenia: function(n){ return n+' zamknięte zlecenia'; }
+  suple:    function(n){ return 'suplementy przez '+n+' dni'; }
 };
 function metricPhrase(m,n){
   const f=METRIC_PHRASE[m.id];
@@ -5708,23 +5675,22 @@ function openWeekReview(){ openModal('review-modal'); renderWeekReview(); }
 
 function renderWeekReview(){
   const el=document.getElementById('review-body'); if(!el) return;
-  const d=weekDaysBack(0);
-  const zam=(S.tasks||[]).filter(function(t){ return t.done && t.doneAt && d.indexOf(new Date(t.doneAt).toDateString())>=0; });
-  const spoz=(S.tasks||[]).filter(zlOverdue);
   const zob=weeklyCommitment();
 
-  let h='<div class="rev-h">Ten tydzień</div><div class="trend-stats">'+
-    tCell(zam.length,'ZAMKNIĘTE')+tCell(spoz.length,'PO TERMINIE')+
-    tCell(zam.reduce(function(a,t){ return a+(t.effort||10); },0),'PUNKTY')+'</div>';
-
-  h+='<div class="rev-h">Zobowiązanie tygodnia</div>';
+  // Kafelki "zamkniete / po terminie / punkty" liczyly zlecenia z listy "na
+  // dzis", ktorej juz nie ma. Zostaje jedna rzecz, ktora ma tu sens: czy
+  // zobowiazanie tego tygodnia jest postawione i czy jest zrobione.
+  let h='<div class="rev-h">Zobowiązanie tygodnia</div>';
   if(zob){
+    const spozn = zlOverdue(zob);
     h+='<div class="sug" style="cursor:default"><div class="sug-t">'+(zob.done?'✓ ':'')+esc(zob.name)+'</div>'+
-       '<div class="sug-w">'+(zob.done?'Zrobione.':'Otwarte — leży na liście „Na dziś".')+'</div></div>';
+       '<div class="sug-w">'+(zob.done?'Zrobione.':(spozn?'Tydzień minął, a zostało otwarte.':'Otwarte — masz na nie ten tydzień.'))+'</div>'+
+       (zob.done?'':'<button class="btn sm b2" style="margin-top:10px" onclick="completeTask('+zob.id+')">✓ Zrobione</button>')+
+       '<button class="btn sm b4" style="margin-top:8px" onclick="deleteTask('+zob.id+')">Usuń zobowiązanie</button></div>';
   } else {
     _sugCache=weekSuggestions();
     if(!_sugCache.length){
-      h+='<div class="zl-empty">Metryki trzymają poziom, a każdy obszar ruszał się w ostatnich 3 tygodniach. Nie ma czego podpowiedzieć — postaw własne zlecenie, jeśli chcesz.</div>';
+      h+='<div class="zl-empty">Metryki trzymają poziom — nie ma czego podpowiedzieć. Dobry tydzień na cel skupienia zamiast zobowiązania.</div>';
     } else {
       h+=_sugCache.map(function(s,i){
         return '<div class="sug" onclick="takeSuggestion('+i+')"><div class="sug-t">'+esc(s.title)+
@@ -5741,7 +5707,7 @@ function takeSuggestion(i){
   S.tasks.push({ id:Date.now(), name:s.name, goalId:null, due:weekDaysBack(0)[6],
                  effort:10, ba:false, weekOf:isoWeekKey(),
                  done:false, doneAt:null, createdAt:Date.now() });
-  save(); renderWeekReview(); renderTasksToday();
+  save(); renderWeekReview();
   showToast('Zobowiązanie tygodnia ustawione.');
 }
 
@@ -6529,7 +6495,7 @@ function daysSinceExport() {
 let _backupMsg = '';
 
 // Podstawiane przy publikacji — patrz publikuj.js.
-const APP_BUILD = '2026-09-06 17:21';
+const APP_BUILD = '2026-09-07 18:11';
 
 // Czy w tle czeka nowsza wersja? Service worker jest siec-najpierw, wiec
 // zwykle wystarczy ponowne otwarcie; ten przycisk jest dla sytuacji, gdy
