@@ -336,6 +336,19 @@ body{background:var(--bg);background-image:radial-gradient(125% 80% at 50% -10%,
 .przel-txt{flex:1;min-width:0}
 .przel-nazwa{font-size:14px;font-weight:600}
 .przel-opis{font-size:12px;color:var(--muted);line-height:1.5;margin-top:3px}
+.mp-akcje{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.mp-btn{flex:1;min-width:130px;padding:10px 12px;border-radius:999px;border:var(--px) solid rgba(164,91,255,.5);background:var(--card2);color:var(--accent5);font-family:'Inter','Noto Emoji',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer}
+.mp-btn.pelny{background:var(--accent5);border-color:var(--accent5);color:#fff}
+.lib-grupa{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:14px 0 6px}
+.lib-row{display:flex;align-items:center;gap:11px;padding:10px 12px;margin-bottom:6px;border:var(--px) solid var(--hair);background:var(--card2);border-radius:var(--r-md);cursor:pointer}
+.lib-row.on{border-color:var(--accent5);background:var(--accent5-soft)}
+.lib-row.juz{opacity:.45;cursor:default}
+.lib-znacz{width:22px;height:22px;border-radius:7px;border:var(--px) solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--accent5)}
+.lib-row.on .lib-znacz{border-color:var(--accent5);background:var(--accent5-soft)}
+.lib-nazwa{flex:1;min-width:0;font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-partia{font-size:11.5px;color:var(--muted);font-weight:400;margin-left:7px}
+.lib-ico{font-size:18px;line-height:1;color:var(--accent2);flex-shrink:0}
+.lib-pusto{font-size:13.5px;color:var(--muted);padding:14px 2px}
 /* ===================== KILOGRAMY NA CWICZENIE ===================== */
 #stats-exvol select{margin-bottom:12px}
 .exvol-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
@@ -1200,6 +1213,17 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
   <div class="fg-sub">Domyślnie dziś. Jeśli zapisujesz trening dzień później — ustaw dzień, w którym naprawdę był zrobiony.</div>
   <button class="btn b2" onclick="zapiszTrening()" style="margin-top:14px">TAK, ZAPISZ</button>
   <button class="btn sm b3" onclick="closeModal('koniec-modal')" style="margin-top:8px">NIE, wracam do treningu</button>
+</div></div>
+
+<!-- BIBLIOTEKA DO MIEDZYPLANOWYCH -->
+<div class="overlay" id="mp-lib-modal">
+<div class="modal">
+  <button class="modal-close" onclick="closeModal('mp-lib-modal')">&#10005;</button>
+  <div class="modal-title">DO MIĘDZYPLANOWYCH</div>
+  <div class="fg-sub" style="margin-bottom:10px">Wybierz z tego, co aplikacja już zna. Wybrane ćwiczenia będą leżały pod każdym planem — historia i rekordy zostają te same, co w planie macierzystym.</div>
+  <input id="mp-lib-szukaj" placeholder="Szukaj — np. brzuch, nogi, plecy, squat..." oninput="renderMpLib()">
+  <div id="mp-lib-lista" style="max-height:52vh;overflow-y:auto;margin-top:10px"></div>
+  <button class="btn b2" id="mp-lib-ok" onclick="mpDodajWybrane()" style="margin-top:14px">DODAJ</button>
 </div></div>
 
 <!-- CEL SKUPIENIA KONIEC -->
@@ -3026,18 +3050,117 @@ function cofnijDorzucenie(exId) {
 
 // Blok na dole planu. Pokazuje sie tylko wtedy, gdy jest co pokazac —
 // pusta ramka z napisem "brak" to szum, a nie informacja.
+// ── BIBLIOTEKA DO PULI MIEDZYPLANOWYCH ──
+// Wszystko, co apka zna: wbudowane cwiczenia kazdego planu plus wlasne
+// przypisane do planow. Cardio pomijamy — nie jest cwiczeniem na serie.
+function bibliotekaMp() {
+  const wPuli = miedzyplanowe().map(function (e) { return e.id; });
+  const out = [];
+  (S.workoutPlans || []).forEach(function (p) {
+    if (p.id === 'cardio') return;
+    const wbud = ((S.builtinExercises || {})[p.id] || []);
+    const wlasne = (S.customExercises || []).filter(function (e) { return e.planId === p.id; });
+    wbud.concat(wlasne).forEach(function (ex) {
+      out.push({ ex: ex, plan: p.name, juz: wPuli.indexOf(ex.id) >= 0 });
+    });
+  });
+  return out;
+}
+
+let _mpWybrane = [];
+
+function openMpLib() {
+  _mpWybrane = [];
+  document.getElementById('mp-lib-szukaj').value = '';
+  renderMpLib();
+  openModal('mp-lib-modal');
+}
+
+function renderMpLib() {
+  const el = document.getElementById('mp-lib-lista'); if (!el) return;
+  const q = (document.getElementById('mp-lib-szukaj').value || '').trim().toLowerCase();
+  const poz = bibliotekaMp().filter(function (r) {
+    if (!q) return true;
+    return [r.ex.name, r.plan, r.ex.muscle].some(function (t) {
+      return (t || '').toLowerCase().indexOf(q) >= 0;
+    });
+  });
+  if (!poz.length) { el.innerHTML = '<div class="lib-pusto">Nic nie pasuje do „' + esc(q) + '".</div>'; }
+  else {
+    let html = '', ostatniPlan = null;
+    poz.forEach(function (r) {
+      if (r.plan !== ostatniPlan) { html += '<div class="lib-grupa">' + esc(r.plan) + '</div>'; ostatniPlan = r.plan; }
+      const wybrane = _mpWybrane.indexOf(r.ex.id) >= 0;
+      html += '<div class="lib-row' + (r.juz ? ' juz' : (wybrane ? ' on' : '')) + '"' +
+        (r.juz ? '' : ' onclick="mpZaznacz(\'' + r.ex.id + '\')"') + '>' +
+        '<div class="lib-znacz">' + (r.juz ? '\u2713' : (wybrane ? '\u2713' : '')) + '</div>' +
+        '<span class="lib-ico">' + exIco(r.ex.icon) + '</span>' +
+        '<div class="lib-nazwa">' + esc(r.ex.name) +
+          (r.ex.muscle ? '<span class="lib-partia">' + esc(r.ex.muscle) + '</span>' : '') + '</div>' +
+        (r.juz ? '<span class="hb-badge">ju\u017C w puli</span>' : '') +
+      '</div>';
+    });
+    el.innerHTML = html;
+  }
+  const btn = document.getElementById('mp-lib-ok');
+  btn.disabled = !_mpWybrane.length;
+  btn.textContent = _mpWybrane.length ? ('DODAJ ' + _mpWybrane.length) : 'DODAJ';
+}
+
+function mpZaznacz(id) {
+  const i = _mpWybrane.indexOf(id);
+  if (i >= 0) _mpWybrane.splice(i, 1); else _mpWybrane.push(id);
+  renderMpLib();
+}
+
+function mpDodajWybrane() {
+  if (!_mpWybrane.length) return;
+  const wszystkie = bibliotekaMp();
+  let dodane = 0;
+  _mpWybrane.forEach(function (id) {
+    const r = wszystkie.find(function (x) { return x.ex.id === id; });
+    if (!r || r.juz) return;
+    const ex = r.ex;
+    // ID ZOSTAJE TO SAMO. Historia, rekordy i "ostatnio robione" sa trzymane
+    // po id — nowe id znaczyloby, ze ten sam przysiad ma dwie osobne historie.
+    S.customExercises.push({
+      id: ex.id, planId: PLAN_MP, icon: ex.icon, name: ex.name,
+      desc: ex.desc || '', link: ex.link || '',
+      sets: ex.sets || 3, mode: exMode(ex),
+      reps: ex.reps || 10, secs: ex.secs || 45,
+      weight: ex.weight || 0, rest: ex.rest || 120, custom: true
+    });
+    dodane++;
+  });
+  save(); closeModal('mp-lib-modal'); renderWorkout();
+  showToast(dodane === 1 ? 'Dodane do mi\u0119dzyplanowych.' : ('Dodane do mi\u0119dzyplanowych: ' + dodane + '.'));
+}
+
+// Nowe cwiczenie spoza biblioteki, od razu jako miedzyplanowe.
+function openMpWlasne() {
+  openAddExercise();
+  document.getElementById('ex-plan-sel').value = PLAN_MP;
+}
+
 function pulaMiedzyplanowa() {
   const pula = miedzyplanowe();
-  if (!pula.length) return '';
+  // Blok pokazuje sie ZAWSZE, takze pusty: bez tego nie ma skad sie dowiedziec,
+  // ze cos takiego w ogole istnieje.
   return '<div class="mp-blok">' +
     '<div class="mp-tyt">\u2605 Mi\u0119dzyplanowe \u2014 do dorzucenia</div>' +
     '<div class="mp-opis">Nie nale\u017C\u0105 do \u017Cadnego planu i le\u017C\u0105 pod ka\u017Cdym. Tapni\u0119cie dok\u0142ada \u0107wiczenie do <b>dzisiejszego</b> treningu \u2014 jutro plan wygl\u0105da jak zwykle.</div>' +
-    '<div class="mp-lista">' + pula.map(function (ex) {
-      const w = jestDorzucone(S.currentPlan, ex.id);
-      return '<div class="mp-chip' + (w ? ' wzieta' : '') + '" onclick="' +
-        (w ? 'cofnijDorzucenie' : 'dorzucCwiczenie') + '(\'' + ex.id + '\')">' +
-        exIco(ex.icon) + '<span>' + esc(ex.name) + '</span><b>' + (w ? '\u2713' : '+') + '</b></div>';
-    }).join('') + '</div></div>';
+    (pula.length
+      ? '<div class="mp-lista">' + pula.map(function (ex) {
+          const w = jestDorzucone(S.currentPlan, ex.id);
+          return '<div class="mp-chip' + (w ? ' wzieta' : '') + '" onclick="' +
+            (w ? 'cofnijDorzucenie' : 'dorzucCwiczenie') + '(\'' + ex.id + '\')">' +
+            exIco(ex.icon) + '<span>' + esc(ex.name) + '</span><b>' + (w ? '\u2713' : '+') + '</b></div>';
+        }).join('') + '</div>'
+      : '<div class="mp-opis" style="margin-top:8px;color:var(--accent5)">Pusto. Wybierz \u0107wiczenia z biblioteki \u2014 nogi i brzuch ju\u017C tam s\u0105.</div>') +
+    '<div class="mp-akcje">' +
+      '<button class="mp-btn pelny" onclick="openMpLib()">\u2295 Z biblioteki</button>' +
+      '<button class="mp-btn" onclick="openMpWlasne()">\u2295 W\u0142asne</button>' +
+    '</div></div>';
 }
 
 function getExercises(planId) {
@@ -3047,7 +3170,12 @@ function getExercises(planId) {
   const goscie = dorzuconeDzis(planId)
     .map(function (id) { return miedzyplanowe().find(function (e) { return e.id === id; }); })
     .filter(Boolean);
-  const all = [...builtin, ...custom, ...goscie];
+  const all = [];
+  const widziane = {};
+  [].concat(builtin, custom, goscie).forEach(function (e) {
+    if (widziane[e.id]) return;      // to samo cwiczenie moze byc w planie i w puli
+    widziane[e.id] = true; all.push(e);
+  });
   // Apply saved order
   const order = (S.exerciseOrder||{})[planId];
   if (order && order.length) {
@@ -6938,7 +7066,7 @@ function daysSinceExport() {
 let _backupMsg = '';
 
 // Podstawiane przy publikacji — patrz publikuj.js.
-const APP_BUILD = '2026-09-09 13:40';
+const APP_BUILD = '2026-09-09 14:01';
 
 // Czy w tle czeka nowsza wersja? Service worker jest siec-najpierw, wiec
 // zwykle wystarczy ponowne otwarcie; ten przycisk jest dla sytuacji, gdy
