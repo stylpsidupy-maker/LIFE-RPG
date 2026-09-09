@@ -326,6 +326,16 @@ body{background:var(--bg);background-image:radial-gradient(125% 80% at 50% -10%,
 .sug-w{font-size:12.5px;color:var(--muted);line-height:1.45}
 .rev-h{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;font-weight:600;font-family:'Inter','Noto Emoji',sans-serif}
 .zl-empty{font-size:13.5px;color:var(--muted);padding:10px 2px}
+.rest-bar-since{font-size:12px;color:var(--accent3);margin-top:2px;font-weight:600}
+.rest-bar.done .rest-bar-lbl{color:var(--accent3)}
+.przel{display:flex;align-items:center;gap:11px;margin-top:12px;padding:12px;border-radius:var(--r-md);background:var(--card2);border:var(--px) solid var(--hair);cursor:pointer}
+.przel-box{width:44px;height:26px;border-radius:999px;background:var(--card);border:var(--px) solid var(--border);flex-shrink:0;position:relative;transition:background .18s,border-color .18s}
+.przel-box i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:transform .18s,background .18s}
+.przel.on .przel-box{background:var(--accent2-soft);border-color:var(--accent2)}
+.przel.on .przel-box i{transform:translateX(18px);background:var(--accent2)}
+.przel-txt{flex:1;min-width:0}
+.przel-nazwa{font-size:14px;font-weight:600}
+.przel-opis{font-size:12px;color:var(--muted);line-height:1.5;margin-top:3px}
 /* ===================== KILOGRAMY NA CWICZENIE ===================== */
 #stats-exvol select{margin-bottom:12px}
 .exvol-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
@@ -334,6 +344,15 @@ body{background:var(--bg);background-image:radial-gradient(125% 80% at 50% -10%,
 .exvol-lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .exvol-foot{font-size:13.2px;color:var(--muted);margin-top:10px;text-align:center}
 
+.mp-blok{margin-top:14px;border:var(--px) dashed rgba(164,91,255,.45);background:var(--accent5-soft);border-radius:var(--r-md);padding:12px}
+.mp-tyt{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--accent5);font-weight:700}
+.mp-opis{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px}
+.mp-lista{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.mp-chip{display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:999px;border:var(--px) solid rgba(164,91,255,.5);background:var(--card2);color:var(--accent5);font-size:13.5px;font-weight:600;cursor:pointer;line-height:1.2}
+.mp-chip .exi{width:17px;height:17px}
+.mp-chip.wzieta{opacity:.45}
+.ex-card.mp{border-color:rgba(164,91,255,.5)}
+.mp-znak{display:inline-block;font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--accent5-soft);color:var(--accent5);border:var(--px) solid rgba(164,91,255,.4);margin-left:6px;vertical-align:middle}
 /* ===================== WYBOR PLANU TRENINGU ===================== */
 .plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
 .plan-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:16px 14px;min-height:112px;border-radius:var(--r);border:var(--px) solid var(--hair);background:var(--card);box-shadow:var(--sh);cursor:pointer;text-align:left;overflow:hidden;min-width:0;font-family:'Inter','Noto Emoji',sans-serif}
@@ -862,6 +881,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 
   <div class="section-title">📋 LOG DZISIAJ</div>
   <div id="focus-log-today"></div>
+  <button class="btn sm b2" onclick="openSesjaModal()">+ Uzupełnij sesję</button>
 
   <div class="section-title">📈 Ile skupienia dziennie</div>
   <div class="pbox" style="padding:14px" id="focus-trend"></div>
@@ -1152,6 +1172,36 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
   <button class="btn b2" onclick="skipDayReview()" style="margin-top:8px">Pomiń</button>
 </div></div>
 
+<!-- RECZNE DOPISANIE SESJI -->
+<div class="overlay" id="sesja-modal">
+<div class="modal">
+  <button class="modal-close" onclick="closeModal('sesja-modal')">&#10005;</button>
+  <div class="modal-title">UZUPEŁNIJ SESJĘ</div>
+  <div class="fg-sub" style="margin-bottom:10px">Dla pracy, której nie zmierzył stoper. Wejdzie do logu, wykresów i celów tak samo jak sesja mierzona.</div>
+  <label style="margin-top:0">Kiedy</label>
+  <input type="date" id="sesja-data">
+  <label>Ile minut</label>
+  <input type="number" id="sesja-min" value="45" min="1" max="1440" step="5">
+  <label>Kategoria</label>
+  <select id="sesja-cat"></select>
+  <label>Godzina rozpoczęcia <span style="color:var(--muted);font-weight:400">(opcjonalnie)</span></label>
+  <input type="time" id="sesja-godz">
+  <button class="btn b2" onclick="zapiszRecznaSesje()" style="margin-top:14px">DOPISZ DO LOGU</button>
+</div></div>
+
+<!-- ZAKONCZENIE TRENINGU -->
+<div class="overlay" id="koniec-modal">
+<div class="modal">
+  <button class="modal-close" onclick="closeModal('koniec-modal')">&#10005;</button>
+  <div class="modal-title">ZAKOŃCZYĆ TRENING?</div>
+  <div class="fg-sub" id="koniec-opis" style="margin-bottom:10px"></div>
+  <label style="margin-top:0">Data zakończenia</label>
+  <input type="date" id="koniec-data">
+  <div class="fg-sub">Domyślnie dziś. Jeśli zapisujesz trening dzień później — ustaw dzień, w którym naprawdę był zrobiony.</div>
+  <button class="btn b2" onclick="zapiszTrening()" style="margin-top:14px">TAK, ZAPISZ</button>
+  <button class="btn sm b3" onclick="closeModal('koniec-modal')" style="margin-top:8px">NIE, wracam do treningu</button>
+</div></div>
+
 <!-- CEL SKUPIENIA KONIEC -->
 <!-- HISTORIA TRENINGOW PLANU -->
 <div class="overlay" id="plan-hist-modal">
@@ -1351,8 +1401,9 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 
 <div id="rest-bar" class="rest-bar">
   <div class="rest-bar-left">
-    <div class="rest-bar-lbl">Przerwa</div>
+    <div class="rest-bar-lbl" id="rest-bar-lbl">Przerwa</div>
     <div class="rest-bar-time" id="rest-bar-time">00:00</div>
+    <div class="rest-bar-since" id="rest-bar-since"></div>
   </div>
   <button class="rest-bar-btn" onclick="addRest(30)">+30s</button>
   <button class="rest-bar-btn" onclick="skipRest()">Pomiń</button>
@@ -1551,6 +1602,9 @@ function defaultState() {
     // POMODORO: przerwa jest faza timera, nie presetem. Preset 5 min
     // ladowal do logu skupienia jako praca — czyli odpoczynek dawal punkty.
     pomodoro: { work: 25, short: 5, long: 15, cycle: 4 },
+    dorzucone: {},         // { dzien: { plan: [idCwiczenia] } } — miedzyplanowe wziete na dzis
+    restTimer: null,       // { endsAt } — przerwa miedzy seriami, przezywa przeladowanie
+    alarmWTle: false,      // czy trzymac kanal audio, zeby alarm zagral przy zgaszonym ekranie
     pomoCount: 0,          // ukonczone sesje pracy dzisiaj
     pomoDay: null,
   };
@@ -1560,7 +1614,11 @@ let S = loadState();
 
 let _saveWarned = false;
 function save() {
-  S.lastActiveDay = new Date().toDateString();
+  // Stempel daty szedl tu bezwarunkowo, wiec dowolny zapis po polnocy (choćby
+  // z licznika przypomnien) kasowal jedyny slad zmiany dnia i migracja przy
+  // starcie nie miala juz po czym poznac, ze dzien sie zmienil. Odhaczone
+  // nawyki zostawaly wtedy z wczoraj na dobre.
+  przewinDzien(S);
   const data = JSON.stringify(S);
   // Always write to localStorage as fast fallback
   try {
@@ -1605,56 +1663,74 @@ function loadFromIDB() {
   }));
 }
 
-function applyMigrations(parsed) {
-  const today = new Date().toDateString();
-  if (parsed.lastActiveDay !== today) {
-    // ── AUTOZAMKNIĘCIE POPRZEDNIEGO DNIA ──
-    // Wcześniej punkty zebrane w ciągu dnia istniały tylko w pendingActions
-    // i były kasowane przy zmianie daty. Jedno zapomniane tapnięcie
-    // "Zakończ dzień" = bezpowrotna i niewidoczna utrata całego dorobku.
-    // Teraz dzień domyka się sam, a rytuał przycisku zostaje dla chętnych.
-    (function autoCommitPreviousDay() {
-      const prev = parsed.lastActiveDay;
-      if (!prev || parsed.dayFinished) return;
-      const acts = parsed.pendingActions || [];
-      const total = acts.reduce((a,x) => a + (x.pts||0), 0);
-      if (total <= 0) return;
-      parsed.yearPts = (parsed.yearPts||0) + total;
-      if (!parsed.dailyPts) parsed.dailyPts = {};
-      parsed.dailyPts[prev] = (parsed.dailyPts[prev]||0) + total;
-      // streak liczony tak samo jak w commitDay — habits jeszcze nie zresetowane
+// Czy nawyk byl zrobiony danego dnia — liczone z LOGU, w ktorym kluczem jest
+// data. Flaga `doneToday` to tylko migawka "dzisiaj" i wlasnie ona potrafila
+// zostac z wczoraj; log nie ma jak sie zestarzec.
+function zrobionyWDniu(st, h, dzien) {
+  const v = ((st.habitLog || {})[h.id] || {})[dzien] || 0;
+  return v >= habitTarget(h);
+}
+
+// PRZEWINIECIE DNIA. Wyciagniete z migracji, bo musi dzialac takze wtedy, gdy
+// apka nie byla przeladowana — telefon trzyma ja w pamieci przez cala dobe.
+// Zwraca opis domknietego dnia albo null. Stempluje date SAM, zeby nie dalo
+// sie ostemplowac dnia bez domkniecia go.
+function przewinDzien(st) {
+  const dzis = new Date().toDateString();
+  if (st.lastActiveDay === dzis) return null;
+  const prev = st.lastActiveDay;
+  let domkniete = null;
+
+  // ── AUTOZAMKNIĘCIE POPRZEDNIEGO DNIA ──
+  // Wcześniej punkty zebrane w ciągu dnia istniały tylko w pendingActions
+  // i były kasowane przy zmianie daty. Jedno zapomniane tapnięcie
+  // "Zakończ dzień" = bezpowrotna i niewidoczna utrata całego dorobku.
+  // Teraz dzień domyka się sam, a rytuał przycisku zostaje dla chętnych.
+  if (prev && !st.dayFinished) {
+    const total = (st.pendingActions || []).reduce(function (a, x) { return a + (x.pts || 0); }, 0);
+    if (total > 0) {
+      st.yearPts = (st.yearPts || 0) + total;
+      if (!st.dailyPts) st.dailyPts = {};
+      st.dailyPts[prev] = (st.dailyPts[prev] || 0) + total;
       const prevDate = new Date(prev);
-      const due = (parsed.habits||[]).filter(h => habitDueToday(h, prevDate));
-      if (due.length && due.every(h => h.doneToday)) {
-        if (!parsed.habitDayLog) parsed.habitDayLog = {};
-        parsed.habitDayLog[prev] = true;
-        parsed.streak = (parsed.streak||0) + 1;
-        if (parsed.streak > (parsed.bestStreak||0)) parsed.bestStreak = parsed.streak;
+      const due = (st.habits || []).filter(function (h) { return habitDueToday(h, prevDate); });
+      if (due.length && due.every(function (h) { return zrobionyWDniu(st, h, prev); })) {
+        if (!st.habitDayLog) st.habitDayLog = {};
+        st.habitDayLog[prev] = true;
+        st.streak = (st.streak || 0) + 1;
+        if (st.streak > (st.bestStreak || 0)) st.bestStreak = st.streak;
       }
       // Dzien z punktami liczy sie tak samo, niezaleznie od tego, czy user
       // tapnal przycisk, czy dzien domknal sie sam.
-      const pdow = (new Date(prev).getDay() + 6) % 7;
-      if (!parsed.weekActivity) parsed.weekActivity = [false,false,false,false,false,false,false];
-      parsed.weekActivity[pdow] = true;
-      parsed._autoCommitted = { day: prev, pts: total };
-    })();
-
-    if (parsed.habits) parsed.habits.forEach(h => h.doneToday = false);
-    if (parsed.supplements) parsed.supplements.forEach(s => s.taken = false);
-    parsed.pendingActions = [];
-    parsed.todayPts = 0;
-    parsed.dayFinished = false;
-    if (!parsed.weekActivity) parsed.weekActivity = [false,false,false,false,false,false,false];
-    // Tydzien rozliczamy po numerze tygodnia ISO, nie przez przesuwanie tablicy.
-    // Stary shift() gubil poniedzialek juz we wtorek, bo zapis i odczyt uzywaja
-    // STALEGO indeksu dnia tygodnia, a shift traktowal tablice jak okno przewijane.
-    const nowWk = getWeekNumber(new Date()), nowYr = new Date().getFullYear();
-    if (parsed.lastWeekNo !== nowWk || parsed.lastWeekYear !== nowYr) {
-      parsed.weekActivity = [false,false,false,false,false,false,false];
-      parsed.lastWeekNo = nowWk;
-      parsed.lastWeekYear = nowYr;
+      const pdow = (prevDate.getDay() + 6) % 7;
+      if (!st.weekActivity) st.weekActivity = [false,false,false,false,false,false,false];
+      st.weekActivity[pdow] = true;
+      domkniete = { day: prev, pts: total };
+      st._autoCommitted = domkniete;
     }
   }
+
+  if (st.habits) st.habits.forEach(function (h) { h.doneToday = false; });
+  if (st.supplements) st.supplements.forEach(function (s) { s.taken = false; });
+  st.pendingActions = [];
+  st.todayPts = 0;
+  st.dayFinished = false;
+  if (!st.weekActivity) st.weekActivity = [false,false,false,false,false,false,false];
+  // Tydzien rozliczamy po numerze tygodnia ISO, nie przez przesuwanie tablicy.
+  // Stary shift() gubil poniedzialek juz we wtorek, bo zapis i odczyt uzywaja
+  // STALEGO indeksu dnia tygodnia, a shift traktowal tablice jak okno przewijane.
+  const nowWk = getWeekNumber(new Date()), nowYr = new Date().getFullYear();
+  if (st.lastWeekNo !== nowWk || st.lastWeekYear !== nowYr) {
+    st.weekActivity = [false,false,false,false,false,false,false];
+    st.lastWeekNo = nowWk;
+    st.lastWeekYear = nowYr;
+  }
+  st.lastActiveDay = dzis;
+  return domkniete;
+}
+
+function applyMigrations(parsed) {
+  przewinDzien(parsed);
   if (!parsed.macros) parsed.macros = defaultState().macros;
   if (!parsed.macroView) parsed.macroView = 'left';
   if (!parsed.dailyMacros) parsed.dailyMacros = {};
@@ -1707,6 +1783,9 @@ function applyMigrations(parsed) {
   if (!parsed.deletedBuiltins) parsed.deletedBuiltins = [];
   if (!parsed.sleepLog) parsed.sleepLog = {};
   if (!parsed.remSent) parsed.remSent = {};
+  if (!parsed.dorzucone) parsed.dorzucone = {};
+  if (parsed.restTimer === undefined) parsed.restTimer = null;
+  if (parsed.alarmWTle === undefined) parsed.alarmWTle = false;
   if (!parsed.focusGoals) parsed.focusGoals = [];
   if (!parsed.dayReview) parsed.dayReview = {};
   // Suplementy: z opisowej dawki ("10g rano") na liczbe + jednostke, a historia
@@ -1877,7 +1956,7 @@ function commitDay() {
 
   // check habits all done
   const due = S.habits.filter(h => habitDueToday(h, new Date()));
-  if (due.length && due.every(h => h.doneToday)) {
+  if (due.length && due.every(h => habitDoneOn(h, today))) {
     S.habitDayLog[today] = true;
     S.streak = (S.streak||0)+1;
     if (S.streak>(S.bestStreak||0)) S.bestStreak=S.streak;
@@ -2095,7 +2174,7 @@ function updateTodayTiles() {
   // zdobyte / (zdobyte + punkty za nieodhaczone nawyki). Nic nie zapisuje do stanu.
   const habits=S.habits||[];
   const hEl=document.getElementById('hdr-habits');
-  if (hEl) hEl.textContent = '✅ ' + habits.filter(h=>h.doneToday).length+'/'+habits.length;
+  if (hEl) hEl.textContent = '✅ ' + habits.filter(h=>habitDoneOn(h, today)).length+'/'+habits.length;
   renderSleepTile();
 }
 
@@ -2503,6 +2582,12 @@ function renderNotifRow() {
     }).join('') + '</div>' +
     (_notifBlad ? '<div class="diag-blad">Ostatni b\u0142\u0105d: ' + esc(_notifBlad) + '</div>' : '') +
     '<button class="btn sm b3" style="margin-top:10px" onclick="testujPowiadomienie()">Wy\u015Blij testowe powiadomienie</button>' +
+    '<div class="przel' + (S.alarmWTle ? ' on' : '') + '" onclick="przelaczAlarmWTle()">' +
+      '<div class="przel-box"><i></i></div>' +
+      '<div class="przel-txt"><div class="przel-nazwa">Alarm przy zgaszonym ekranie</div>' +
+      '<div class="przel-opis">Apka trzyma wtedy kana\u0142 d\u017Awi\u0119ku przez ca\u0142y czas odliczania \u2014 dzi\u0119ki temu alarm ko\u0144ca przerwy zagra, cho\u0107by telefon le\u017Ca\u0142 w kieszeni z wygaszonym ekranem. ' +
+      '<b>Cena:</b> na ten czas mo\u017Ce zatrzyma\u0107 muzyk\u0119 z telefonu. Kana\u0142 wraca zaraz po alarmie.</div></div>' +
+    '</div>' +
     (trzebaZainstalowac()
       ? '<div class="notif-hint">' +
           '<b>Na iPhonie najpierw zainstaluj aplikację.</b><br>' +
@@ -2512,10 +2597,11 @@ function renderNotifRow() {
         '</div>'
       : '') +
     '<div style="font-size:13.8px;color:var(--muted);line-height:1.55;margin-top:10px">' +
-      'Działają, gdy apka jest otwarta lub w tle — ostrzeżenie 15 s przed końcem i sam koniec ' +
+      'Działają, gdy apka jest otwarta lub w tle — ostrzeżenie przed końcem i sam koniec ' +
       'przerwy między seriami, sesji focus oraz serii na czas. ' +
       'Niezależnie od zgody zawsze działa wibracja i sygnał dźwiękowy. ' +
-      'Przypomnienie o stałej porze przy całkiem zamkniętej apce wymagałoby serwera push, więc tego nie ma.' +
+      'Przy zgaszonym ekranie telefon usypia stronę i powiadomienie nie doleci — od tego jest przełącznik wyżej. ' +
+      'Niezależnie od wszystkiego pasek przerwy zostaje na ekranie i mówi, o której się skończyła i ile czasu minęło.' +
     '</div>';
 }
 
@@ -2653,7 +2739,6 @@ function nawykCzekaNaPrzypomnienie(h, teraz) {
   if (!h.reminder) return false;
   if (!habitDueToday(h, teraz)) return false;
   if (habitDoneOn(h, teraz.toDateString())) return false;
-  if (h.kind === 'binary' && h.doneToday) return false;
   const cz = String(h.reminder).split(':');
   if (cz.length !== 2) return false;
   const minutyCelu = (parseInt(cz[0], 10) || 0) * 60 + (parseInt(cz[1], 10) || 0);
@@ -2680,14 +2765,33 @@ function sprawdzPrzypomnienia() {
   if (cos) { save(); renderHabits(); }
 }
 
+// Data potrafi sie zmienic, gdy apka JEST otwarta — telefon trzyma zainstalowana
+// stronę w pamieci przez cala dobe, wiec "otwarcie rano" czesto nie jest
+// ponownym zaladowaniem i migracja startowa w ogole sie nie wykonuje.
+function sprawdzDzien() {
+  if (S.lastActiveDay === new Date().toDateString()) return false;
+  const info = przewinDzien(S);
+  save();
+  try {
+    renderToday(); updateHeader(); renderWorkout(); renderFocus(); renderWeekDots();
+  } catch (e) {}
+  showToast(info ? ('Nowy dzie\u0144. Wczoraj domkni\u0119te: +' + info.pts + ' PKT')
+                 : 'Nowy dzie\u0144 \u2014 lista na dzi\u015B wyczyszczona.');
+  return true;
+}
+
 function startPrzypomnienia() {
   if (_remIv) clearInterval(_remIv);
+  sprawdzDzien();
   sprawdzPrzypomnienia();                       // nadrobienie przy wejsciu
-  _remIv = setInterval(sprawdzPrzypomnienia, 30000);
+  _remIv = setInterval(function () { sprawdzDzien(); sprawdzPrzypomnienia(); }, 30000);
 }
 // Powrot do uspionej karty to najczestszy moment, w ktorym trzeba nadrobic.
 document.addEventListener('visibilitychange', function () {
-  if (!document.hidden) sprawdzPrzypomnienia();
+  if (document.hidden) return;
+  // Powrot do okna to najczestszy moment, w ktorym data jest juz inna.
+  sprawdzDzien();
+  sprawdzPrzypomnienia();
 });
 
 // Nawyk odhaczony przed chwila — do jednorazowego blysku. Trzymamy to w
@@ -2706,6 +2810,9 @@ function renderHabits() {
     const target = habitTarget(h);
     const cur = habitValue(h);
     // Ikona zostaje ZAWSZE. Stan "zrobione" niesie poswiata i znacznik w rogu.
+    // Stan bierzemy z LOGU pod dzisiejsza data, a nie z flagi doneToday:
+    // flaga jest migawka i to wlasnie ona potrafila zostac z wczoraj.
+    const zrobiony = cur >= target;
     const chkLabel = h.kind === 'count' ? `${cur}/${target}` : exIco(h.icon||'⭐');
     const streak = habitStreak(h);
     const schedTxt = (h.schedule && h.schedule.type === 'weekly')
@@ -2717,10 +2824,10 @@ function renderHabits() {
       return `<span class="hb-dot ${doneThat?'on':''} ${!dueThat?'off':''}"></span>`;
     }).join('');
     return `
-    <div class="row ${h.doneToday?'done':''}">
-      <div class="chk ${h.doneToday?'on':''} ${h.id===_blyskNawyku?'just':''} ${h.kind==='count'?'hb-count':''}" onclick="toggleHabit(${h.id})">${chkLabel}</div>
+    <div class="row ${zrobiony?'done':''}">
+      <div class="chk ${zrobiony?'on':''} ${h.id===_blyskNawyku?'just':''} ${h.kind==='count'?'hb-count':''}" onclick="toggleHabit(${h.id})">${chkLabel}</div>
       <div class="row-info">
-        <div class="row-name" style="${h.doneToday?'text-decoration:line-through;opacity:.6':''}">${esc(h.name)}</div>
+        <div class="row-name" style="${zrobiony?'text-decoration:line-through;opacity:.6':''}">${esc(h.name)}</div>
         <div class="row-meta">${esc(h.desc)} <span class="hb-badge">${schedTxt}</span>${h.reminder?`<span class="hb-rem">⏰ ${h.reminder}</span>`:''}${streak>0?`<span class="hb-badge fire">🔥 ${streak}</span>`:''}</div>
         <div class="hb-week">${dots}</div>
       </div>
@@ -2873,11 +2980,74 @@ function ensurePlans() {
   if (!S.exerciseOrder) S.exerciseOrder={};
 }
 
+// ── CWICZENIA MIEDZYPLANOWE ──
+// planId '*' = cwiczenie nie nalezy do zadnego planu i moze wejsc do kazdego.
+const PLAN_MP = '*';
+
+function miedzyplanowe() {
+  return (S.customExercises || []).filter(function (e) { return e.planId === PLAN_MP; });
+}
+function dorzuconeDzis(planId) {
+  const d = new Date().toDateString();
+  return (((S.dorzucone || {})[d]) || {})[planId] || [];
+}
+function jestDorzucone(planId, exId) { return dorzuconeDzis(planId).indexOf(exId) >= 0; }
+
+function dorzucCwiczenie(exId) {
+  const d = new Date().toDateString(), p = S.currentPlan;
+  if (!S.dorzucone) S.dorzucone = {};
+  if (!S.dorzucone[d]) S.dorzucone[d] = {};
+  if (!S.dorzucone[d][p]) S.dorzucone[d][p] = [];
+  if (S.dorzucone[d][p].indexOf(exId) < 0) S.dorzucone[d][p].push(exId);
+  save(); renderWorkout();
+  const ex = miedzyplanowe().find(function (e) { return e.id === exId; });
+  showToast((ex ? ex.name : 'Ćwiczenie') + ' \u2014 dorzucone na dzi\u015B');
+  setTimeout(function () {
+    const el = document.getElementById('exc-' + exId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 120);
+}
+
+function cofnijDorzucenie(exId) {
+  const d = new Date().toDateString(), p = S.currentPlan;
+  const lista = ((S.dorzucone || {})[d] || {})[p];
+  if (!lista) return;
+  const ex = miedzyplanowe().find(function (e) { return e.id === exId; });
+  const zrobione = ((S.currentSets[p] || {})[exId] || []).some(function (s) { return s.done; });
+  const pytanie = zrobione
+    ? 'Ma\u0142o tego: masz tu ju\u017C odhaczone serie. Wyj\u0105\u0107 "' + (ex ? ex.name : 'to \u0107wiczenie') + '" z dzisiejszego treningu razem z nimi?'
+    : 'Wyj\u0105\u0107 "' + (ex ? ex.name : 'to \u0107wiczenie') + '" z dzisiejszego treningu?';
+  confirmDlg(pytanie, function () {
+    S.dorzucone[d][p] = lista.filter(function (x) { return x !== exId; });
+    if (S.currentSets[p]) delete S.currentSets[p][exId];
+    save(); renderWorkout();
+  });
+}
+
+// Blok na dole planu. Pokazuje sie tylko wtedy, gdy jest co pokazac —
+// pusta ramka z napisem "brak" to szum, a nie informacja.
+function pulaMiedzyplanowa() {
+  const pula = miedzyplanowe();
+  if (!pula.length) return '';
+  return '<div class="mp-blok">' +
+    '<div class="mp-tyt">\u2605 Mi\u0119dzyplanowe \u2014 do dorzucenia</div>' +
+    '<div class="mp-opis">Nie nale\u017C\u0105 do \u017Cadnego planu i le\u017C\u0105 pod ka\u017Cdym. Tapni\u0119cie dok\u0142ada \u0107wiczenie do <b>dzisiejszego</b> treningu \u2014 jutro plan wygl\u0105da jak zwykle.</div>' +
+    '<div class="mp-lista">' + pula.map(function (ex) {
+      const w = jestDorzucone(S.currentPlan, ex.id);
+      return '<div class="mp-chip' + (w ? ' wzieta' : '') + '" onclick="' +
+        (w ? 'cofnijDorzucenie' : 'dorzucCwiczenie') + '(\'' + ex.id + '\')">' +
+        exIco(ex.icon) + '<span>' + esc(ex.name) + '</span><b>' + (w ? '\u2713' : '+') + '</b></div>';
+    }).join('') + '</div></div>';
+}
+
 function getExercises(planId) {
   const deleted = new Set(S.deletedBuiltins || []);
   const builtin = ((S.builtinExercises||{})[planId]||[]).filter(e => !deleted.has(planId+'::'+e.id));
   const custom = (S.customExercises||[]).filter(e=>e.planId===planId);
-  const all = [...builtin, ...custom];
+  const goscie = dorzuconeDzis(planId)
+    .map(function (id) { return miedzyplanowe().find(function (e) { return e.id === id; }); })
+    .filter(Boolean);
+  const all = [...builtin, ...custom, ...goscie];
   // Apply saved order
   const order = (S.exerciseOrder||{})[planId];
   if (order && order.length) {
@@ -2926,6 +3096,14 @@ function sessionMinutes() {
 let workoutView = 'plans';   // 'plans' | 'plan'
 
 // Polska odmiana: 1 cwiczenie, 2-4 cwiczenia, 5+ cwiczen (z wyjatkiem 12-14).
+// Ta sama odmiana dla serii: 1 seria, 2-4 serie, 5+ serii.
+function plSerie(n) {
+  if (n === 1) return '1 odhaczona seria';
+  const last = n % 10, last2 = n % 100;
+  if (last >= 2 && last <= 4 && (last2 < 12 || last2 > 14)) return n + ' odhaczone serie';
+  return n + ' odhaczonych serii';
+}
+
 function plExercises(n) {
   if (n === 1) return "1 ćwiczenie";
   const last = n % 10, last2 = n % 100;
@@ -3391,26 +3569,30 @@ function renderExercises() {
 
   const planRest = S.planRestMin[S.currentPlan]||2;
 
-  if (!exercises.length) { container.innerHTML='<div class="empty"><span class="e">🏋</span>Brak ćwiczeń. Dodaj pierwsze!</div>'; return; }
+  if (!exercises.length) {
+    container.innerHTML = '<div class="empty"><span class="e">🏋</span>Brak ćwiczeń. Dodaj pierwsze!</div>' + pulaMiedzyplanowa();
+    return;
+  }
 
   container.innerHTML = exercises.map(ex=>{
     const sets=S.currentSets[S.currentPlan][ex.id]||[];
     const allDone=sets.length&&sets.every(s=>s.done);
     const custom=ex.custom;
-    return `<div class="ex-card" id="exc-${ex.id}" data-exid="${ex.id}">
+    const gosc = ex.planId === PLAN_MP;
+    return `<div class="ex-card${gosc?' mp':''}" id="exc-${ex.id}" data-exid="${ex.id}">
       <div class="ex-head" onclick="toggleEx('${ex.id}')">
         <div style="padding:0 8px 0 0;color:var(--muted);font-size:20px;cursor:grab;touch-action:none" 
              onmousedown="startDrag(event,'${ex.id}')" ontouchstart="startDrag(event,'${ex.id}')"
              onclick="event.stopPropagation()">⠿</div>
         <div style="flex:1;min-width:0">
-          <div class="ex-name" style="${allDone?'color:var(--accent)':''}">${allDone?'✓ ':''}${exIco(ex.icon)} ${esc(ex.name)}</div>
+          <div class="ex-name" style="${allDone?'color:var(--accent)':''}">${allDone?'✓ ':''}${exIco(ex.icon)} ${esc(ex.name)}${gosc?'<span class="mp-znak">międzyplanowe</span>':''}</div>
           ${(function(){ const kiedy=odKiedyTekst(ostatnioRobione(ex.id));
             return '<div class="ex-sub">' + (kiedy?'<span>ostatnio <b>'+kiedy+'</b></span><span class="sep">·</span>':'<span>jeszcze nie robione</span><span class="sep">·</span>')
               + '<span>przerwa <b>'+fmtPrzerwa(restForExercise(ex.id))+'</b></span></div>'; })()}
         </div>
         <div style="display:flex;align-items:center;gap:1px">
           <button class="del-btn edit" onclick="event.stopPropagation();editExerciseAny('${ex.id}',${!!custom})">✎</button>
-          <button class="del-btn rm" onclick="event.stopPropagation();deleteExerciseAny('${ex.id}',${!!custom})">✕</button>
+          <button class="del-btn rm" onclick="event.stopPropagation();${gosc?`cofnijDorzucenie('${ex.id}')`:`deleteExerciseAny('${ex.id}',${!!custom})`}">✕</button>
           <span class="ex-toggle${_otwarte.indexOf('ebody-'+ex.id)>=0?' open':''}" id="etog-${ex.id}">▼</span>
         </div>
       </div>
@@ -3436,7 +3618,7 @@ function renderExercises() {
         <button class="ex-hist-btn" onclick="event.stopPropagation();openExHistory('${ex.id}')">📈 HISTORIA TEGO ĆWICZENIA</button>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + pulaMiedzyplanowa();
 }
 
 // Ikona cwiczenia. Wartosc "ex:<id>" znaczy rysowana ikona ze sprite'a;
@@ -3455,14 +3637,52 @@ function fmt(s) { s=Math.max(0,Math.round(s)); return Math.floor(s/60).toString(
 // jest dławiony przy zgaszonym ekranie i po prostu by kłamał.
 let restEndsAt = 0, restIv = null;
 let restSkipTo = null;
+let restZagrane = false;
+
+// "3 min temu" — bez tego godzina konca sama w sobie nic nie mowi, gdy
+// wracasz do telefonu i nie wiesz, ile juz stoisz.
+function temu(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 20) return 'przed chwil\u0105';
+  if (s < 60) return s + ' s temu';
+  const m = Math.round(s / 60);
+  if (m < 60) return m + ' min temu';
+  const h = Math.floor(m / 60);
+  return h + ' h ' + (m % 60) + ' min temu';
+}
+function godzina(ts) {
+  return new Date(ts).toLocaleTimeString('pl', { hour: '2-digit', minute: '2-digit' });
+}
 
 function startRest(seconds) {
   if (restSkipTo) { clearTimeout(restSkipTo); restSkipTo = null; }
   if (!seconds || seconds <= 0) return;
   restEndsAt = Date.now() + seconds*1000;
   restOstrzezone = false;
+  restZagrane = false;
+  // Stan przerwy musi PRZEZYC przeladowanie: iOS wyrzuca uspione strony z
+  // pamieci, a wtedy pasek znikal razem z informacja, ze przerwa w ogole trwa.
+  S.restTimer = { endsAt: restEndsAt, plan: S.currentPlan };
+  save();
+  trzymajDzwiek(true);
   const bar = document.getElementById('rest-bar');
   if (bar) { bar.classList.add('on'); bar.classList.remove('done'); bar.classList.remove('warn'); }
+  if (restIv) clearInterval(restIv);
+  restIv = setInterval(tickRest, 250);
+  tickRest();
+}
+
+// Odtworzenie przerwy po przeladowaniu strony. Przerwa, ktora skonczyla sie,
+// gdy telefon lezal w kieszeni, ZOSTAJE na ekranie z godzina konca — po to,
+// zeby dalo sie odczytac, ile czasu przepadlo.
+function restoreRest() {
+  const t = S.restTimer; if (!t || !t.endsAt) return;
+  // Po szesciu godzinach to juz nie jest przerwa miedzy seriami, tylko smiec.
+  if (Date.now() - t.endsAt > 6 * 3600 * 1000) { S.restTimer = null; save(); return; }
+  restEndsAt = t.endsAt;
+  restOstrzezone = restZagrane = (Date.now() >= t.endsAt);
+  const bar = document.getElementById('rest-bar');
+  if (bar) { bar.classList.add('on'); bar.classList.remove('warn'); }
   if (restIv) clearInterval(restIv);
   restIv = setInterval(tickRest, 250);
   tickRest();
@@ -3485,20 +3705,49 @@ function tickRest() {
       notify('Przerwa ko\u0144czy si\u0119', 'Zosta\u0142o ' + left + ' s \u2014 szykuj si\u0119 do serii.', 'rest-warn');
     }
   } else if (bar) bar.classList.remove('warn');
+
+  const since = document.getElementById('rest-bar-since');
+  const lbl = document.getElementById('rest-bar-lbl');
   if (left <= 0) {
-    clearInterval(restIv); restIv = null;
-    document.getElementById('rest-bar')?.classList.add('done');
-    restAlert();
-    restSkipTo = setTimeout(skipRest, 5000);
+    if (bar) bar.classList.add('done');
+    if (lbl) lbl.textContent = 'Koniec przerwy';
+    // Pasek NIE znika sam po 5 sekundach. Gdy nie patrzysz w ekran, to wlasnie
+    // ta linijka jest jedyna informacja o tym, ile czasu przepadlo.
+    if (since) since.textContent = 'o ' + godzina(restEndsAt) + ' \u00B7 ' + temu(Date.now() - restEndsAt);
+    if (!restZagrane) {
+      restZagrane = true;
+      restAlert();
+      // Kanal dzwieku oddajemy dopiero po alarmie — wczesniej nie mialby z
+      // czego zagrac.
+      setTimeout(function () { trzymajDzwiek(false); }, 2500);
+    }
+  } else {
+    if (lbl) lbl.textContent = 'Przerwa';
+    if (since) since.textContent = 'koniec o ' + godzina(restEndsAt);
   }
 }
 
-function addRest(sec) { if (restSkipTo) { clearTimeout(restSkipTo); restSkipTo = null; } if (restEndsAt) { restEndsAt += sec*1000; restOstrzezone = false; document.getElementById('rest-bar')?.classList.remove('done'); if(!restIv) restIv=setInterval(tickRest,250); tickRest(); } }
+function addRest(sec) {
+  if (restSkipTo) { clearTimeout(restSkipTo); restSkipTo = null; }
+  if (!restEndsAt) return;
+  // Dokladanie czasu po koncu przerwy liczymy od TERAZ, nie od godziny konca —
+  // inaczej "+30 s" do przerwy sprzed pieciu minut nie robi nic.
+  restEndsAt = Math.max(restEndsAt, Date.now()) + sec * 1000;
+  restOstrzezone = false; restZagrane = false;
+  S.restTimer = { endsAt: restEndsAt, plan: S.currentPlan }; save();
+  stopAlarm(); trzymajDzwiek(true);
+  document.getElementById('rest-bar')?.classList.remove('done');
+  if (!restIv) restIv = setInterval(tickRest, 250);
+  tickRest();
+}
 
 function skipRest() {
   if (restSkipTo) { clearTimeout(restSkipTo); restSkipTo = null; }
   if (restIv) clearInterval(restIv);
-  restIv = null; restEndsAt = 0;
+  restIv = null; restEndsAt = 0; restZagrane = false;
+  S.restTimer = null; save();
+  trzymajDzwiek(false);
+  stopAlarm();
   const bar = document.getElementById('rest-bar');
   if (bar) { bar.classList.remove('on'); bar.classList.remove('done'); bar.classList.remove('warn'); }
 }
@@ -3506,6 +3755,55 @@ function skipRest() {
 // Jeden wspolny kontekst dzwieku, odblokowany pierwszym dotknieciem ekranu.
 // Przegladarka na telefonie nie pozwala zagrac "z niczego": kontekst tworzony
 // dopiero w chwili alarmu potrafi wstac uspiony i nie zagrac w ogole.
+// ALARM PRZY ZGASZONYM EKRANIE.
+//
+// Przegladarka bez serwera push nie obudzi telefonu — to nie jest do obejscia.
+// Ale jest jedna droga, ktora dziala: dopoki strona GRA dzwiek, system jej nie
+// usypia. Wiec przez caly czas odliczania puszczamy nieslyszalny sygnal, a na
+// koncu jest z czego zagrac alarm.
+//
+// Cena jest realna i dlatego to przelacznik, a nie domyslne zachowanie: apka
+// przejmuje na ten czas kanal audio i potrafi zatrzymac muzyke z telefonu.
+// Kanal oddajemy zaraz po alarmie, zeby muzyka mogla wrocic.
+let _cichaPetla = null;
+
+function trzymajDzwiek(wlacz) {
+  if (!wlacz || !S.alarmWTle) {
+    if (_cichaPetla) {
+      try { _cichaPetla.stop(); } catch (e) {}
+      _cichaPetla = null;
+      try { if (navigator.audioSession) navigator.audioSession.type = 'auto'; } catch (e) {}
+    }
+    return;
+  }
+  if (_cichaPetla) return;
+  const c = audioCtx(); if (!c) return;
+  try {
+    // 'playback' to jedyny tryb, ktory gra przy zgaszonym ekranie. On tez
+    // odpowiada za przerwanie cudzego dzwieku — jedno nie istnieje bez drugiego.
+    if (navigator.audioSession) navigator.audioSession.type = 'playback';
+  } catch (e) {}
+  try {
+    const buf = c.createBuffer(1, Math.floor(c.sampleRate * 1.5), c.sampleRate);
+    const d = buf.getChannelData(0);
+    // Nie zero: idealna cisza bywa wycinana i sesja dzwieku gasnie razem z nia.
+    for (let i = 0; i < d.length; i++) d[i] = (i % 2 ? 0.0009 : -0.0009);
+    const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+    const g = c.createGain(); g.gain.value = 0.02;
+    src.connect(g); g.connect(c.destination); src.start();
+    _cichaPetla = src;
+  } catch (e) {}
+}
+
+function przelaczAlarmWTle() {
+  S.alarmWTle = !S.alarmWTle;
+  save();
+  if (!S.alarmWTle) trzymajDzwiek(false);
+  else if (restEndsAt && Date.now() < restEndsAt) trzymajDzwiek(true);
+  renderNotifRow();
+  showToast(S.alarmWTle ? 'Alarm przy zgaszonym ekranie: w\u0142\u0105czony.' : 'Alarm przy zgaszonym ekranie: wy\u0142\u0105czony.');
+}
+
 let _audio = null;
 function audioCtx() {
   try {
@@ -3543,14 +3841,18 @@ function pisk(hz, opoznienie, dlugosc, glosnosc) {
 // obok, jedno "pip" przepada. Wycisza sie przyciskiem albo samo po ~16 s.
 let _alarmTo = [], _alarmOsc = [];
 
-function stopAlarm() {
+function stopAlarm(zachowajKanal) {
   _alarmTo.forEach(clearTimeout); _alarmTo = [];
   _alarmOsc.forEach(function (o) { try { o.stop(); } catch (e) {} }); _alarmOsc = [];
   const b = document.getElementById('alarm-bar'); if (b) b.classList.remove('on');
+  // Kanal audio oddajemy razem z alarmem — trzymanie go dluzej blokowaloby
+  // muzyke bez powodu.
+  if (!zachowajKanal && !(restEndsAt && Date.now() < restEndsAt)) trzymajDzwiek(false);
 }
 
 function alarmFokus(tytul, tresc, serie) {
-  stopAlarm();
+  stopAlarm(true);              // true = nie oddawaj kanalu, zaraz z niego gramy
+  trzymajDzwiek(true);
   notify(tytul, tresc, 'focus-alarm');
   const bar = document.getElementById('alarm-bar');
   if (bar) {
@@ -3638,18 +3940,47 @@ function toggleSet(event,exId,idx) {
 }
 
 function finishWorkout() {
-  const today = new Date().toDateString();
+  const plan = S.workoutPlans.find(p=>p.id===S.currentPlan);
+  const planName = plan?.name || S.currentPlan;
+  const exes = S.currentPlan === 'cardio' ? [] : getExercises(S.currentPlan);
+  let serie = 0;
+  exes.forEach(function (ex) {
+    serie += (S.currentSets[S.currentPlan]?.[ex.id] || []).filter(function (s) { return s.done; }).length;
+  });
+  document.getElementById('koniec-opis').innerHTML =
+    esc(planName) + (S.currentPlan === 'cardio' ? '' : ' \u00B7 <b>' + plSerie(serie) + '</b>');
+  document.getElementById('koniec-data').value = toDateInput(new Date().toDateString());
+  openModal('koniec-modal');
+}
+
+function zapiszTrening() {
+  const today = fromDateInput(document.getElementById('koniec-data').value) || new Date().toDateString();
+  if (dayStart(today) > todayStart()) { showToast('Data z przysz\u0142o\u015Bci \u2014 popraw dzie\u0144.'); return; }
+  const dzis = new Date().toDateString();
   const plan = S.workoutPlans.find(p=>p.id===S.currentPlan);
   const planName = plan?.name || S.currentPlan;
 
-  confirmDlg('Zakończyć trening ' + planName + '?', () => {    if (S.currentPlan==='cardio') {
+  // Punkty za dzien miniony ida prosto do tamtego dnia: jest juz rozliczony,
+  // wiec nie ma go gdzie domknac po raz drugi.
+  const punkty = function (ile, opis) {
+    if (today === dzis) { queuePts(ile, opis); return; }
+    S.yearPts = (S.yearPts || 0) + ile;
+    if (!S.dailyPts) S.dailyPts = {};
+    S.dailyPts[today] = (S.dailyPts[today] || 0) + ile;
+    if (getThisWeekDays().indexOf(today) >= 0) {
+      if (!S.weekActivity) S.weekActivity = [false,false,false,false,false,false,false];
+      S.weekActivity[(new Date(today).getDay() + 6) % 7] = true;
+    }
+  };
+
+  (function () {    if (S.currentPlan==='cardio') {
       const type=document.getElementById('cardio-type')?.value||'Cardio';
       const time=parseInt(document.getElementById('cardio-time')?.value)||0;
       const hr=parseInt(document.getElementById('cardio-hr')?.value)||0;
       const dist=parseFloat(document.getElementById('cardio-dist')?.value)||0;
       S.workouts.push({type:'cardio',planName:'CARDIO',time,hr,dist,day:today});
       updateCardioRecord(type, time, dist);
-      queuePts(25,'Cardio: '+type+' '+time+'min');
+      punkty(25,'Cardio: '+type+' '+time+'min');
       showToast('Cardio zapisane!');
     } else {
       const exes=getExercises(S.currentPlan);
@@ -3676,13 +4007,15 @@ function finishWorkout() {
       delete S.currentSets[S.currentPlan];   // tylko zakonczony plan; inne moga byc w toku
       updateRecords(setsCopy);
       showWorkoutSummary(planName, vol, setCount, mins, sekundy);
-      queuePts(30,'Trening: '+planName);
+      punkty(30,'Trening: '+planName);
       showToast('Trening zapisany!');
     }
     S.session = null;
     skipRest();
-    save(); renderWorkout(); updateTodayTiles(); renderWeekDots(); renderPendingActions();
-  }, 'TAK, ZAPISZ');
+    closeModal('koniec-modal');
+    save(); renderWorkout(); updateTodayTiles(); renderWeekDots(); renderPendingActions(); updateHeader();
+    if (today !== dzis) showToast('Zapisane pod dat\u0105 ' + fgDataKrotko(today) + '.');
+  })();
 }
 
 function showWorkoutSummary(planName, vol, setCount, mins, sekundy) {
@@ -3862,6 +4195,17 @@ function deleteCurrentPlan() {
   });
 }
 
+// Lista planow w modalu cwiczenia. "Międzyplanowe" jest pierwsze, bo to
+// wybor o innym charakterze niz reszta: nie "gdzie to mieszka", tylko
+// "to nie mieszka nigdzie".
+function opcjePlanow(wybrany) {
+  return '<option value="' + PLAN_MP + '"' + (wybrany === PLAN_MP ? ' selected' : '') + '>' +
+         '\u2605 Mi\u0119dzyplanowe \u2014 pod ka\u017Cdym planem</option>' +
+         S.workoutPlans.filter(function (p) { return p.id !== 'cardio'; }).map(function (p) {
+           return '<option value="' + p.id + '"' + (p.id === wybrany ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+         }).join('');
+}
+
 function openAddExercise() {
   document.getElementById('ex-edit-id').value='';
   document.getElementById('ex-src-id').value='';
@@ -3874,7 +4218,7 @@ function openAddExercise() {
   renderExModeChips('reps');
   pickerSelect('ex','ex:bench');
   const sel=document.getElementById('ex-plan-sel');
-  sel.innerHTML=S.workoutPlans.filter(p=>p.id!=='cardio').map(p=>`<option value="${p.id}" ${p.id===S.currentPlan?'selected':''}>${p.name}</option>`).join('');
+  sel.innerHTML=opcjePlanow(S.currentPlan);
   openModal('exercise-modal');
 }
 
@@ -3893,7 +4237,7 @@ function editExercise(id) {
   if (exMode(ex) === 'time') document.getElementById('ex-reps-inp').value = ex.secs || 45;
   pickerSelect('ex',ex.icon||'ex:bench');
   const sel=document.getElementById('ex-plan-sel');
-  sel.innerHTML=S.workoutPlans.filter(p=>p.id!=='cardio').map(p=>`<option value="${p.id}" ${p.id===ex.planId?'selected':''}>${p.name}</option>`).join('');
+  sel.innerHTML=opcjePlanow(ex.planId);
   openModal('exercise-modal');
 }
 
@@ -3957,9 +4301,7 @@ function editExerciseAny(id, isCustom) {
   if (exMode(ex) === 'time') document.getElementById('ex-reps-inp').value = ex.secs || 45;
   pickerSelect('ex', ex.icon||'ex:bench');
   const sel = document.getElementById('ex-plan-sel');
-  sel.innerHTML = S.workoutPlans.filter(p=>p.id!=='cardio').map(p=>
-    `<option value="${p.id}" ${p.id===S.currentPlan?'selected':''}>${p.name}</option>`
-  ).join('');
+  sel.innerHTML = opcjePlanow(S.currentPlan);
   save();
   openModal('exercise-modal');
 }
@@ -4831,8 +5173,15 @@ function focusTick() {
   if (czasEl) czasEl.classList.toggle('warn', t.kind === 'down' && left > 0 && left <= OSTRZEZENIE_S);
   if (t.kind === 'down' && left <= 0) finishFocusPhase(false);
 }
-function startFocusInterval() { stopFocusInterval(); focusIv = setInterval(focusTick, 250); }
-function stopFocusInterval()  { if (focusIv) { clearInterval(focusIv); focusIv = null; } }
+function startFocusInterval() {
+  stopFocusInterval();
+  trzymajDzwiek(true);          // zeby alarm mial z czego zagrac przy zgaszonym ekranie
+  focusIv = setInterval(focusTick, 250);
+}
+function stopFocusInterval()  {
+  if (focusIv) { clearInterval(focusIv); focusIv = null; }
+  trzymajDzwiek(false);
+}
 
 // Domkniecie fazy — pracy albo przerwy. Wydzielone, bo dokladnie to samo musi
 // sie stac po powrocie do uspionej karty. `cichy` = wracamy do zastanego stanu;
@@ -4846,9 +5195,16 @@ function finishFocusPhase(cichy) {
     const mb = Math.max(1, Math.round(t.planMin || focusElapsedMin()));
     S.focusTimer = null; save();
     logBreak(mb, t.breakKind);
-    showToast((dluga ? 'Długa przerwa' : 'Przerwa') + ' skończona ✓');
     renderFocusTimer();
-    if (!cichy) alarmFokus('Koniec przerwy', 'Wracamy do roboty.', 2);
+    if (cichy) {
+      // Telefon lezal zgaszony — alarm po fakcie niczego nie uratuje, ale
+      // godzina konca mowi, ile czasu przepadlo.
+      const kiedy = t.endsAt || Date.now();
+      showToast((dluga ? 'Długa przerwa' : 'Przerwa') + ' skończyła się o ' + godzina(kiedy) + ' · ' + temu(Date.now() - kiedy));
+    } else {
+      showToast((dluga ? 'Długa przerwa' : 'Przerwa') + ' skończona ✓');
+      alarmFokus('Koniec przerwy', 'Wracamy do roboty.', 2);
+    }
     return;
   }
 
@@ -4857,9 +5213,13 @@ function finishFocusPhase(cichy) {
   logFocusSession(mins);
   pomoRollDay();
   S.pomoCount = (S.pomoCount || 0) + 1; save();
-  showToast('Sesja zakończona: ' + mins + ' min ✓');
   renderFocusTimer();
-  if (cichy) return;
+  if (cichy) {
+    const kiedy = t.endsAt || Date.now();
+    showToast('Sesja sko\u0144czy\u0142a si\u0119 o ' + godzina(kiedy) + ' \u00B7 ' + temu(Date.now() - kiedy) + ' \u00B7 zapisane ' + mins + ' min');
+    return;
+  }
+  showToast('Sesja zakończona: ' + mins + ' min ✓');
   // Przerwa NIE startuje sama i nie pyta okienkiem. Sesja konczy sie w chwili,
   // w ktorej czlowieka nie ma przy telefonie — automat zjadalby z przerwy tyle,
   // ile trwa powrot do biurka. Prawy licznik czeka gotowy, wystarczy Start.
@@ -5289,6 +5649,59 @@ function saveFocusCat() {
   save();renderFocusCats();closeModal('focuscat-modal');showToast('Kategoria zapisana!');
 }
 
+// ── RECZNE DOPISANIE SESJI ──
+function openSesjaModal() {
+  document.getElementById('sesja-data').value = toDateInput(new Date().toDateString());
+  document.getElementById('sesja-min').value = 45;
+  document.getElementById('sesja-godz').value = '';
+  const sel = document.getElementById('sesja-cat');
+  sel.innerHTML = (S.focusCats || []).map(function (c) {
+    return '<option value="' + esc(c.name) + '"' + (c.id === S.activeFocusCat ? ' selected' : '') + '>' + esc(c.name) + '</option>';
+  }).join('');
+  openModal('sesja-modal');
+}
+
+function zapiszRecznaSesje() {
+  const min = parseInt(document.getElementById('sesja-min').value, 10);
+  if (isNaN(min) || min < 1) { showToast('Podaj liczb\u0119 minut.'); return; }
+  const dzien = fromDateInput(document.getElementById('sesja-data').value);
+  if (!dzien) { showToast('Podaj dat\u0119.'); return; }
+  if (dayStart(dzien) > todayStart()) { showToast('Nie da si\u0119 dopisa\u0107 sesji z przysz\u0142o\u015Bci.'); return; }
+
+  const nazwa = document.getElementById('sesja-cat').value || 'Praca';
+  const kat = (S.focusCats || []).find(function (c) { return c.name === nazwa; });
+  const godz = document.getElementById('sesja-godz').value;
+
+  // Znacznik czasu ustawiamy na WSKAZANY dzien, a nie na teraz — inaczej
+  // sesja sprzed tygodnia ladowalaby w historii dzisiaj.
+  const d = new Date(dzien);
+  if (godz && godz.indexOf(':') > 0) { const cz = godz.split(':'); d.setHours(+cz[0] || 0, +cz[1] || 0, 0, 0); }
+  else d.setHours(12, 0, 0, 0);
+
+  S.focusSessions.push({
+    cat: nazwa,
+    catColor: (kat && kat.color) || '#3DE1FF',
+    catIcon: (kat && kat.icon) || '\uD83D\uDD2E',
+    minutes: min, day: dzien, ts: d.getTime(), reczna: true,
+    time: d.toLocaleTimeString('pl', { hour: '2-digit', minute: '2-digit' })
+  });
+
+  // Punkty: dzis normalna droga, dzien miniony prosto do zamknietego dnia.
+  const dzis = new Date().toDateString();
+  if (dzien === dzis) {
+    queuePts(min, 'Focus: ' + nazwa + ' ' + min + 'min', false);
+  } else {
+    S.yearPts = (S.yearPts || 0) + min;
+    if (!S.dailyPts) S.dailyPts = {};
+    S.dailyPts[dzien] = (S.dailyPts[dzien] || 0) + min;
+  }
+
+  save();
+  closeModal('sesja-modal');
+  renderFocus(); updateTodayTiles(); renderPendingActions(); updateHeader();
+  showToast('Dopisane: ' + min + ' min \u00B7 ' + (dzien === dzis ? 'dzi\u015B' : fgDataKrotko(dzien)));
+}
+
 function renderFocusLogToday() {
   const el=document.getElementById('focus-log-today');
   const today=new Date().toDateString();
@@ -5302,7 +5715,7 @@ function renderFocusLogToday() {
     return `<div class="row">
       <div style="width:8px;height:30px;background:${kol};flex-shrink:0;border-radius:2px"></div>
       <span style="font-size:20px">${s.catIcon||(brk?'☕':'🔮')}</span>
-      <div class="row-info"><div class="row-name"${brk?' style="color:var(--muted)"':''}>${esc(s.cat)}</div><div class="row-meta">${s.minutes} min · ${s.time}</div></div>
+      <div class="row-info"><div class="row-name"${brk?' style="color:var(--muted)"':''}>${esc(s.cat)}</div><div class="row-meta">${s.minutes} min · ${s.time}${s.reczna?' · <span class="hb-badge">wpisana ręcznie</span>':''}</div></div>
       <button class="del-btn rm" onclick="deleteFocusSession('${today}',${i})">✕</button>
     </div>`;}).join('') +
     '<div class="trend-foot" style="text-align:left;margin-top:8px">Praca ' + praca + ' min' +
@@ -6525,7 +6938,7 @@ function daysSinceExport() {
 let _backupMsg = '';
 
 // Podstawiane przy publikacji — patrz publikuj.js.
-const APP_BUILD = '2026-09-07 18:25';
+const APP_BUILD = '2026-09-09 13:40';
 
 // Czy w tle czeka nowsza wersja? Service worker jest siec-najpierw, wiec
 // zwykle wystarczy ponowne otwarcie; ten przycisk jest dla sytuacji, gdy
@@ -6710,6 +7123,7 @@ function init(){
   closeStaleSession();
   restoreFocusTimer();
   restoreSetTimer();
+  restoreRest();
   renderNotifRow();
   // Poinformuj, ze wczorajszy dzien domknal sie sam — cichy zysk jest tak samo
   // mylacy jak cicha strata.
