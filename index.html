@@ -4527,6 +4527,21 @@ function editExercise(id) {
   openModal('exercise-modal');
 }
 
+// Kolejnosc cwiczen w planie zyje w S.exerciseOrder[plan] jako lista id.
+// Kazda zmiana skladu planu musi ja zaktualizowac, inaczej cwiczenie wypada z
+// listy i getExercises zrzuca je na sam dol.
+function podmienWKolejnosci(planId, staryId, nowyId) {
+  const o = (S.exerciseOrder || {})[planId];
+  if (!o) return;
+  const i = o.indexOf(staryId);
+  if (i >= 0) {
+    if (nowyId) o[i] = nowyId;        // nowe id siada na miejscu starego
+    else o.splice(i, 1);              // usuniete znika bez zostawiania dziury
+  } else if (nowyId && o.indexOf(nowyId) < 0) {
+    o.push(nowyId);                   // cwiczenie nowe w tym planie — na koniec
+  }
+}
+
 function saveExercise() {
   const name=document.getElementById('ex-name-inp').value.trim(); if(!name) return;
   const editId=document.getElementById('ex-edit-id').value;
@@ -4545,6 +4560,7 @@ function saveExercise() {
     rest:Math.max(0, Math.round((parseFloat(document.getElementById('ex-rest-inp').value)||2)*60)),
     custom:true
   };
+  const staryPlan = editId ? (S.customExercises.find(e=>e.id===editId)||{}).planId : null;
   if (editId){const i=S.customExercises.findIndex(e=>e.id===editId);if(i>=0)S.customExercises[i]=ex;}
   else S.customExercises.push(ex);
   // Przenies serie odhaczone w tej sesji ze starego (wbudowanego) id na nowe,
@@ -4553,6 +4569,14 @@ function saveExercise() {
   if (srcId && S.currentSets[S.currentPlan] && S.currentSets[S.currentPlan][srcId]) {
     S.currentSets[S.currentPlan][ex.id] = S.currentSets[S.currentPlan][srcId];
     delete S.currentSets[S.currentPlan][srcId];
+  }
+  // ...i to samo z MIEJSCEM w kolejnosci. Bez tego poprawienie ciezaru przy
+  // wbudowanym cwiczeniu zrzucalo je na koniec listy, bo kopia dostaje nowe id.
+  if (srcId && srcId !== ex.id) podmienWKolejnosci(ex.planId, srcId, ex.id);
+  else if (!editId) podmienWKolejnosci(ex.planId, null, ex.id);
+  if (staryPlan && staryPlan !== ex.planId) {
+    podmienWKolejnosci(staryPlan, ex.id, null);   // zmiana planu: wypisz ze starego
+    podmienWKolejnosci(ex.planId, null, ex.id);
   }
   if (document.getElementById('ex-src-id')) document.getElementById('ex-src-id').value = '';
   save(); renderWorkout(); closeModal('exercise-modal'); showToast('Ćwiczenie zapisane!');
@@ -4604,6 +4628,7 @@ function deleteExerciseAny(id, isCustom) {
     const key = S.currentPlan+'::'+id;
     if (!S.deletedBuiltins.includes(key)) S.deletedBuiltins.push(key);
     if (S.currentSets[S.currentPlan]) delete S.currentSets[S.currentPlan][id];
+    podmienWKolejnosci(S.currentPlan, id, null);
     save(); renderWorkout();
   });
 }
@@ -4613,6 +4638,7 @@ function deleteExercise(id) {
   confirmDlg('Usunąć ćwiczenie "'+ex?.name+'"?', ()=>{
     S.customExercises=S.customExercises.filter(e=>e.id!==id);
     if(S.currentSets[S.currentPlan]) delete S.currentSets[S.currentPlan][id];
+    podmienWKolejnosci(ex ? ex.planId : S.currentPlan, id, null);
     save(); renderWorkout();
   });
 }
@@ -7224,7 +7250,7 @@ function daysSinceExport() {
 let _backupMsg = '';
 
 // Podstawiane przy publikacji — patrz publikuj.js.
-const APP_BUILD = '2026-10-27 12:49';
+const APP_BUILD = '2026-10-27 12:54';
 
 // Czy w tle czeka nowsza wersja? Service worker jest siec-najpierw, wiec
 // zwykle wystarczy ponowne otwarcie; ten przycisk jest dla sytuacji, gdy
