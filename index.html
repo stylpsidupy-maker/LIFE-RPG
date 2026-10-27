@@ -7250,7 +7250,7 @@ function daysSinceExport() {
 let _backupMsg = '';
 
 // Podstawiane przy publikacji — patrz publikuj.js.
-const APP_BUILD = '2026-10-27 12:54';
+const APP_BUILD = '2026-10-27 13:00';
 
 // Czy w tle czeka nowsza wersja? Service worker jest siec-najpierw, wiec
 // zwykle wystarczy ponowne otwarcie; ten przycisk jest dla sytuacji, gdy
@@ -7485,15 +7485,24 @@ function startDrag(e, exId) {
   const rect = card.getBoundingClientRect();
   const clientY = e.touches ? e.touches[0].clientY : e.clientY;
   const offsetY = clientY - rect.top;
-  const ghost = card.cloneNode(true);
-  ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;pointer-events:none;z-index:999;border:2px solid var(--accent2);box-shadow:0 4px 20px rgba(0,0,0,.6)`;
-  document.body.appendChild(ghost);
-  card.style.opacity = '0.25';
-  _drag = { exId, card, ghost, container, insertBefore: null };
+  // Duch i przygaszenie karty czekaja na PRAWDZIWY ruch — przy zwyklym
+  // tapnieciu nic nie ma prawa mrugnac ani sie przesunac.
+  let ghost = null;
+  const PROG_PX = 6;                 // ponizej tego to jest tapniecie, nie przeciaganie
+  _drag = { exId, card, ghost: null, container, insertBefore: null, ruszony: false };
 
   const move = ev => {
     ev.preventDefault();
     const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    if (!_drag.ruszony) {
+      if (Math.abs(cy - clientY) < PROG_PX) return;   // palec jeszcze stoi
+      _drag.ruszony = true;
+      ghost = card.cloneNode(true);
+      ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;pointer-events:none;z-index:999;border:2px solid var(--accent2);box-shadow:0 4px 20px rgba(0,0,0,.6)`;
+      document.body.appendChild(ghost);
+      card.style.opacity = '0.25';
+      _drag.ghost = ghost;
+    }
     ghost.style.top = (cy - offsetY)+'px';
     const siblings = [...container.querySelectorAll('.ex-card')].filter(c=>c!==card);
     let ib = null;
@@ -7516,7 +7525,11 @@ function startDrag(e, exId) {
     document.removeEventListener('touchmove', move);
     document.removeEventListener('touchend', end);
     if (!_drag) return;
-    ghost.remove();
+    // Tapniecie bez ruchu: nic sie nie wydarzylo i nic nie ma prawa sie zmienic.
+    // Wczesniej konczylo sie tu z insertBefore === null, co ten kod czytal jako
+    // "upusc na samym koncu" — i cwiczenie spadalo na dol listy.
+    if (!_drag.ruszony) { _drag = null; return; }
+    if (ghost) ghost.remove();
     container.querySelectorAll('.drag-line').forEach(l=>l.remove());
     card.style.opacity = '';
     const allCards = [...container.querySelectorAll('.ex-card')];
