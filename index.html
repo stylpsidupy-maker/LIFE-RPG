@@ -2105,7 +2105,7 @@ function showPage(name) {
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
-  if (name==='workout') renderWorkout();
+  if (name==='workout') { _sesjaWciagaDoPlanu = true; renderWorkout(); }
   if (name==='nutrition') renderNutrition();
   if (name==='focus') renderFocus();
   if (name==='stats') renderStats();
@@ -3278,6 +3278,7 @@ function renderPlanPicker() {
 function openPlan(id) {
   S.currentPlan = id;
   workoutView = 'plan';
+  _sesjaWciagaDoPlanu = false;
   save();
   renderWorkout();
   window.scrollTo(0, 0);
@@ -3285,8 +3286,28 @@ function openPlan(id) {
 
 function backToPlans() {
   workoutView = 'plans';
+  _sesjaWciagaDoPlanu = false;   // wyjscie jest decyzja uzytkownika, nie propozycja
   renderWorkout();
   window.scrollTo(0, 0);
+}
+
+// Przerwanie treningu bez zapisu. Potrzebne, bo sesja startuje SAMA przy
+// pierwszej odhaczonej serii — jedno przypadkowe tapniecie zostawialo stan,
+// z ktorego jedynym wyjsciem bylo zapisanie treningu, ktorego nie bylo.
+function przerwijTrening() {
+  const p = S.currentPlan;
+  const serie = Object.keys((S.currentSets || {})[p] || {}).reduce(function (a, k) {
+    return a + S.currentSets[p][k].filter(function (s) { return s.done; }).length;
+  }, 0);
+  const koniec = function () {
+    S.session = null;
+    if (S.currentSets) delete S.currentSets[p];
+    skipRest();
+    save(); backToPlans();
+    showToast('Trening przerwany \u2014 nic nie zapisane.');
+  };
+  if (!serie) { koniec(); return; }   // nie ma o co pytac
+  confirmDlg('Przerwa\u0107 trening bez zapisu? ' + plSerie(serie) + ' przepadnie.', koniec, 'TAK, PRZERWIJ');
 }
 
 function renderPlanHead() {
@@ -3299,10 +3320,15 @@ function renderPlanHead() {
   if (del) del.style.display = (p && !p.builtin) ? 'inline-block' : 'none';
 }
 
+// Czy sesja w toku ma prawo przeciagnac widok do planu. Tak jest przy WEJSCIU
+// w zakladke Trening; nie jest tak po tapnieciu "wstecz" — inaczej przycisk
+// nic nie robi, bo widok wraca w tym samym przerysowaniu.
+let _sesjaWciagaDoPlanu = true;
+
 function renderWorkout() {
   ensurePlans();
   // Sesja w toku wygrywa z widokiem wyboru — wracasz tam, gdzie przerwales.
-  if (S.session && S.session.plan) { S.currentPlan = S.session.plan; workoutView = "plan"; }
+  if (_sesjaWciagaDoPlanu && S.session && S.session.plan) { S.currentPlan = S.session.plan; workoutView = "plan"; }
   const picker = document.getElementById("plan-picker");
   const detail = document.getElementById("plan-detail");
   if (picker) picker.style.display = (workoutView === "plans") ? "block" : "none";
@@ -3446,7 +3472,12 @@ function renderFinishButton() {
   const planName = plan?.name || S.currentPlan;
   const otherToday = (S.workouts||[]).filter(w=>w.day===today).map(w=>w.planName||w.type);
   const infoStr = otherToday.length ? `<div style="font-size:15.6px;color:var(--muted);margin-top:6px;text-align:center">Dziś zapisano: ${otherToday.join(', ')}</div>` : '';
-  wrap.innerHTML = `<button class="btn" onclick="finishWorkout()">✓ ZAKOŃCZ TRENING</button>${infoStr}`;
+  // "Przerwij" pokazujemy tylko wtedy, gdy jest co przerywac. Przycisk
+  // kasujacy stan, ktorego nie ma, to tylko okazja do pomylki.
+  const przerwij = (S.session && S.session.plan === S.currentPlan)
+    ? '<button class="btn sm b4" style="margin-top:8px" onclick="przerwijTrening()">Przerwij trening bez zapisu</button>'
+    : '';
+  wrap.innerHTML = `<button class="btn" onclick="finishWorkout()">✓ ZAKOŃCZ TRENING</button>${przerwij}${infoStr}`;
 }
 
 // renderPlanTabs usuniete — pasek zakladek zastapiony ekranem wyboru planu.
@@ -7066,7 +7097,7 @@ function daysSinceExport() {
 let _backupMsg = '';
 
 // Podstawiane przy publikacji — patrz publikuj.js.
-const APP_BUILD = '2026-09-09 14:01';
+const APP_BUILD = '2026-10-27 12:39';
 
 // Czy w tle czeka nowsza wersja? Service worker jest siec-najpierw, wiec
 // zwykle wystarczy ponowne otwarcie; ten przycisk jest dla sytuacji, gdy
