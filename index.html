@@ -366,6 +366,13 @@ body{background:var(--bg);background-image:radial-gradient(125% 80% at 50% -10%,
 .mp-chip.wzieta{opacity:.45}
 .ex-card.mp{border-color:rgba(164,91,255,.5)}
 .mp-znak{display:inline-block;font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--accent5-soft);color:var(--accent5);border:var(--px) solid rgba(164,91,255,.4);margin-left:6px;vertical-align:middle}
+.zal-box{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding:12px 13px;margin-bottom:10px;border-radius:var(--r-md);background:var(--accent3-soft);border:var(--px) solid rgba(255,61,154,.45)}
+.zal-txt{flex:1;min-width:150px}
+.zal-tyt{font-size:13.5px;font-weight:700;color:var(--accent3)}
+.zal-opis{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:3px}
+.zal-akcje{display:flex;gap:7px;flex-shrink:0}
+.zal-btn{padding:9px 13px;border-radius:999px;border:var(--px) solid rgba(255,61,154,.5);background:var(--card2);color:var(--accent3);font-family:'Inter','Noto Emoji',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.zal-btn.pelny{background:var(--accent3);border-color:var(--accent3);color:#fff}
 /* ===================== WYBOR PLANU TRENINGU ===================== */
 .plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
 .plan-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:16px 14px;min-height:112px;border-radius:var(--r);border:var(--px) solid var(--hair);background:var(--card);box-shadow:var(--sh);cursor:pointer;text-align:left;overflow:hidden;min-width:0;font-family:'Inter','Noto Emoji',sans-serif}
@@ -786,6 +793,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
   <!-- WIDOK 1: wybor typu treningu -->
   <div id="plan-picker">
     <div class="section-title">🏋 Co dziś trenujesz?</div>
+    <div id="zalegle-wrap"></div>
     <div class="plan-grid" id="plan-grid"></div>
     <button class="btn sm b3" onclick="openModal('plan-modal')" style="margin-top:12px">+ Własny plan</button>
 
@@ -1626,6 +1634,7 @@ function defaultState() {
     // POMODORO: przerwa jest faza timera, nie presetem. Preset 5 min
     // ladowal do logu skupienia jako praca — czyli odpoczynek dawal punkty.
     pomodoro: { work: 25, short: 5, long: 15, cycle: 4 },
+    sesjaDzien: {},        // { plan: dzien } — z kiedy sa odhaczone serie wiszace w planie
     dorzucone: {},         // { dzien: { plan: [idCwiczenia] } } — miedzyplanowe wziete na dzis
     restTimer: null,       // { endsAt } — przerwa miedzy seriami, przezywa przeladowanie
     alarmWTle: false,      // czy trzymac kanal audio, zeby alarm zagral przy zgaszonym ekranie
@@ -1807,6 +1816,7 @@ function applyMigrations(parsed) {
   if (!parsed.deletedBuiltins) parsed.deletedBuiltins = [];
   if (!parsed.sleepLog) parsed.sleepLog = {};
   if (!parsed.remSent) parsed.remSent = {};
+  if (!parsed.sesjaDzien) parsed.sesjaDzien = {};
   if (!parsed.dorzucone) parsed.dorzucone = {};
   if (parsed.restTimer === undefined) parsed.restTimer = null;
   if (parsed.alarmWTle === undefined) parsed.alarmWTle = false;
@@ -3225,6 +3235,12 @@ let workoutView = 'plans';   // 'plans' | 'plan'
 
 // Polska odmiana: 1 cwiczenie, 2-4 cwiczenia, 5+ cwiczen (z wyjatkiem 12-14).
 // Ta sama odmiana dla serii: 1 seria, 2-4 serie, 5+ serii.
+// 1 seria czeka, 3 serie czekaja, 9 serii czeka.
+function czekaSerie(n) {
+  const last = n % 10, last2 = n % 100;
+  return (last >= 2 && last <= 4 && (last2 < 12 || last2 > 14)) ? 'czekaj\u0105' : 'czeka';
+}
+
 function plSerie(n) {
   if (n === 1) return '1 odhaczona seria';
   const last = n % 10, last2 = n % 100;
@@ -3257,8 +3273,112 @@ function planLastDone(planId) {
   return w === 1 ? 'tydzień temu' : w + ' tyg. temu';
 }
 
+// ── NIEDOKONCZONY TRENING ──
+// Dzien odhaczenia serii stemplujemy przy tapnieciu. Bez tego nie da sie
+// stwierdzic, KIEDY powstaly ptaszki wiszace w planie, a wiec i pod jaka data
+// mialby zostac zapisany zapomniany trening.
+function stempelSesji(planId) {
+  if (!S.sesjaDzien) S.sesjaDzien = {};
+  S.sesjaDzien[planId] = new Date().toDateString();
+}
+
+function serieWPlanie(planId) {
+  const m = (S.currentSets || {})[planId] || {};
+  return Object.keys(m).reduce(function (a, k) {
+    return a + (m[k] || []).filter(function (s) { return s.done; }).length;
+  }, 0);
+}
+
+// Dzien, z ktorego pochodza wiszace serie. Trzy zrodla, od najpewniejszego:
+// stempel, znacznik czasu na serii, poczatek sesji. Stare dane moga nie miec
+// zadnego — wtedy null i uzytkownik sam wskazuje date.
+function dzienSerii(planId) {
+  if ((S.sesjaDzien || {})[planId]) return S.sesjaDzien[planId];
+  const m = (S.currentSets || {})[planId] || {};
+  let max = 0;
+  Object.keys(m).forEach(function (k) {
+    (m[k] || []).forEach(function (s) { if (s.done && s.ts > max) max = s.ts; });
+  });
+  if (max) return new Date(max).toDateString();
+  if (S.session && S.session.plan === planId) return new Date(S.session.startedAt).toDateString();
+  return null;
+}
+
+// Plany z odhaczonymi seriami z INNEGO dnia niz dzisiejszy.
+function zalegleTreningi() {
+  const dzis = new Date().toDateString();
+  return Object.keys(S.currentSets || {}).map(function (p) {
+    const serie = serieWPlanie(p);
+    if (!serie) return null;
+    const d = dzienSerii(p);
+    if (d === dzis) return null;            // dzisiejszy trening jeszcze trwa
+    return { plan: p, dzien: d, serie: serie };
+  }).filter(Boolean);
+}
+
+function nazwaPlanu(id) {
+  const p = (S.workoutPlans || []).find(function (x) { return x.id === id; });
+  return (p && p.name) || id;
+}
+
+function bannerZaleglych(tylkoPlan) {
+  const lista = zalegleTreningi().filter(function (z) { return !tylkoPlan || z.plan === tylkoPlan; });
+  if (!lista.length) return '';
+  return lista.map(function (z) {
+    return '<div class="zal-box">' +
+      '<div class="zal-txt">' +
+        '<div class="zal-tyt">\u26A0 Niedoko\u0144czony trening: ' + esc(nazwaPlanu(z.plan)) + '</div>' +
+        '<div class="zal-opis">' + plSerie(z.serie) + ' ' + czekaSerie(z.serie) + ' tu ' +
+          (z.dzien ? ('od <b>' + fgDataKrotko(z.dzien) + '</b>') : 'z poprzedniej sesji') +
+          '. Trening nie trafi\u0142 do historii ani do punkt\u00F3w.</div>' +
+      '</div>' +
+      '<div class="zal-akcje">' +
+        '<button class="zal-btn pelny" onclick="dokonczZalegly(\'' + z.plan + '\')">Zapisz</button>' +
+        '<button class="zal-btn" onclick="wyrzucZalegly(\'' + z.plan + '\')">Wyrzu\u0107</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+// Zapis zaleglego idzie przez to samo okno, co zwykle zakonczenie — z data
+// podstawiona z dnia, w ktorym serie faktycznie powstaly.
+function dokonczZalegly(planId) {
+  const d = dzienSerii(planId);
+  S.currentPlan = planId;
+  workoutView = 'plan';
+  _sesjaWciagaDoPlanu = false;
+  save(); renderWorkout();
+  finishWorkout(d);
+}
+
+function wyrzucZalegly(planId) {
+  const z = zalegleTreningi().find(function (x) { return x.plan === planId; });
+  if (!z) return;
+  confirmDlg('Wyrzuci\u0107 niedoko\u0144czony trening ' + nazwaPlanu(planId) + '? ' +
+             plSerie(z.serie) + ' przepadnie.', function () {
+    delete S.currentSets[planId];
+    if (S.sesjaDzien) delete S.sesjaDzien[planId];
+    if (S.session && S.session.plan === planId) S.session = null;
+    save(); renderWorkout();
+    showToast('Wyrzucone.');
+  }, 'TAK, WYRZU\u0106');
+}
+
+// Jeden toast przy starcie — inaczej o zaleglym treningu dowiedzialby sie
+// tylko ktos, kto sam wejdzie w zakladke Trening. Czyli nie ten, kto zapomnial.
+function przypomnijOZaleglych() {
+  const lista = zalegleTreningi();
+  if (!lista.length) return;
+  const z = lista[0];
+  setTimeout(function () {
+    showToast('Niedoko\u0144czony trening ' + nazwaPlanu(z.plan) +
+              (z.dzien ? (' z ' + fgDataKrotko(z.dzien)) : '') + ' \u2014 zajrzyj do zak\u0142adki Trening.');
+  }, 1600);
+}
+
 function renderPlanPicker() {
   const el = document.getElementById('plan-grid'); if (!el) return;
+  const zal = document.getElementById('zalegle-wrap');
+  if (zal) zal.innerHTML = bannerZaleglych(null);
   el.innerHTML = (S.workoutPlans || []).map(function(p) {
     const n = planExerciseCount(p.id);
     const last = planLastDone(p.id);
@@ -3302,6 +3422,7 @@ function przerwijTrening() {
   const koniec = function () {
     S.session = null;
     if (S.currentSets) delete S.currentSets[p];
+    if (S.sesjaDzien) delete S.sesjaDzien[p];
     skipRest();
     save(); backToPlans();
     showToast('Trening przerwany \u2014 nic nie zapisane.');
@@ -3729,11 +3850,12 @@ function renderExercises() {
   const planRest = S.planRestMin[S.currentPlan]||2;
 
   if (!exercises.length) {
-    container.innerHTML = '<div class="empty"><span class="e">🏋</span>Brak ćwiczeń. Dodaj pierwsze!</div>' + pulaMiedzyplanowa();
+    container.innerHTML = bannerZaleglych(S.currentPlan) + '<div class="empty"><span class="e">🏋</span>Brak ćwiczeń. Dodaj pierwsze!</div>' + pulaMiedzyplanowa();
     return;
   }
 
-  container.innerHTML = exercises.map(ex=>{
+  const _zal = bannerZaleglych(S.currentPlan);
+  container.innerHTML = _zal + exercises.map(ex=>{
     const sets=S.currentSets[S.currentPlan][ex.id]||[];
     const allDone=sets.length&&sets.every(s=>s.done);
     const custom=ex.custom;
@@ -4086,6 +4208,8 @@ function toggleSet(event,exId,idx) {
   const s=S.currentSets[S.currentPlan][exId][idx];
   s.done=!s.done;
   if (s.done) {
+    s.ts = Date.now();                 // zeby bylo wiadomo, z ktorego dnia jest seria
+    stempelSesji(S.currentPlan);
     ensureSession(S.currentPlan);
     checkLivePR(exId, s);
     if (s.type !== 'warm') startRest(restForExercise(exId));
@@ -4098,7 +4222,7 @@ function toggleSet(event,exId,idx) {
   renderExercises();
 }
 
-function finishWorkout() {
+function finishWorkout(dzien) {
   const plan = S.workoutPlans.find(p=>p.id===S.currentPlan);
   const planName = plan?.name || S.currentPlan;
   const exes = S.currentPlan === 'cardio' ? [] : getExercises(S.currentPlan);
@@ -4108,7 +4232,9 @@ function finishWorkout() {
   });
   document.getElementById('koniec-opis').innerHTML =
     esc(planName) + (S.currentPlan === 'cardio' ? '' : ' \u00B7 <b>' + plSerie(serie) + '</b>');
-  document.getElementById('koniec-data').value = toDateInput(new Date().toDateString());
+  // Data z argumentu to przypadek zaleglego treningu: podstawiamy dzien, w
+  // ktorym serie naprawde powstaly, a nie dzis.
+  document.getElementById('koniec-data').value = toDateInput(dzien || new Date().toDateString());
   openModal('koniec-modal');
 }
 
@@ -4164,6 +4290,7 @@ function zapiszTrening() {
       S.workouts.push({type:S.currentPlan,planName,volume:vol,secVol:sekundy,sets:setsCopy,day:today,minutes:mins,setCount});
       if (!S.totalWorkouts) S.totalWorkouts=0; S.totalWorkouts++;
       delete S.currentSets[S.currentPlan];   // tylko zakonczony plan; inne moga byc w toku
+      if (S.sesjaDzien) delete S.sesjaDzien[S.currentPlan];
       updateRecords(setsCopy);
       showWorkoutSummary(planName, vol, setCount, mins, sekundy);
       punkty(30,'Trening: '+planName);
@@ -7097,7 +7224,7 @@ function daysSinceExport() {
 let _backupMsg = '';
 
 // Podstawiane przy publikacji — patrz publikuj.js.
-const APP_BUILD = '2026-10-27 12:39';
+const APP_BUILD = '2026-10-27 12:47';
 
 // Czy w tle czeka nowsza wersja? Service worker jest siec-najpierw, wiec
 // zwykle wystarczy ponowne otwarcie; ten przycisk jest dla sytuacji, gdy
@@ -7292,6 +7419,7 @@ function init(){
   }
   renderWorkout();
   renderFocus();
+  przypomnijOZaleglych();
   maybeAskSleep();
   startPrzypomnienia();
   maybeAskDayReview();
